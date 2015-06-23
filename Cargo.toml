@@ -1,0 +1,13 @@
+[package]
+name    = "mongo_driver"
+version = "0.1.0"
+authors = ["Thijs Cadier <thijs@appsignal.com>"]
+
+[dependencies]
+libc = "*"
+
+[dependencies.bson]
+git = "https://github.com/zonyitoo/bson-rs.git"
+
+[dependencies.mongo_c_driver_wrapper]
+path = "mongo_c_driver_wrapper"
