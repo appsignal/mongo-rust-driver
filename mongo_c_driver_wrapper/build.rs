@@ -66,16 +66,30 @@ fn main() {
 
         // Add include CLANG_INCLUDE_DIR so that several issue in searching
         // clang include dir
-        bindgen::builder()
-            .emit_builtins()
-            .header(mongo_h_path.to_str().unwrap())
-            .clang_arg(format!("-I{}", bson_path.to_str().unwrap()))
-            .clang_arg(format!("-I{}", env::var("CLANG_INCLUDE_DIR")
-                               .unwrap_or(String::from("/usr/lib/clang/3.6.1/include"))))
-            .generate()
-            .unwrap()
-            .write_to_file(&bindings_rs_path)
-            .unwrap();
+        match env::var("CLANG_INCLUDE_DIR") {
+            Ok(dir) => {                
+                bindgen::builder()
+                    .emit_builtins()
+                    .header(mongo_h_path.to_str().unwrap())
+                    .clang_arg(format!("-I{}", bson_path.to_str().unwrap()))
+                    .clang_arg(format!("-I{}", dir))
+                    .generate()
+                    .unwrap()
+                    .write_to_file(&bindings_rs_path)
+                    .unwrap();
+            },
+            Err(_) => {
+                bindgen::builder()
+                    .emit_builtins()
+                    .header(mongo_h_path.to_str().unwrap())
+                    .clang_arg(format!("-I{}", bson_path.to_str().unwrap()))
+                    .generate()
+                    .unwrap()
+                    .write_to_file(&bindings_rs_path)
+                    .unwrap();
+            }
+        }
+        
     }
 
     // Output to Cargo
