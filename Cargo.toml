@@ -1,11 +1,17 @@
 [package]
-name    = "mongo_driver"
-version = "0.1.0"
-authors = ["Thijs Cadier <thijs@appsignal.com>"]
+name        = "mongo_driver"
+version     = "0.1.0"
+authors     = ["Thijs Cadier <thijs@appsignal.com>"]
+description = "Mongo Rust driver built on top of the Mongo C driver"
+readme      = "README.md"
+repository  = "https://github.com/thijsc/mongo-rust-driver"
+keywords    = ["mongodb", "database"]
+license     = "MIT"
 
 [dependencies]
 libc = "*"
 bson = "*"
 
 [dependencies.mongo_c_driver_wrapper]
-path = "mongo_c_driver_wrapper"
+path    = "mongo_c_driver_wrapper"
+version = "1.1.8"
