@@ -5,9 +5,7 @@ authors = ["Thijs Cadier <thijs@appsignal.com>"]
 
 [dependencies]
 libc = "*"
-
-[dependencies.bson]
-git = "https://github.com/zonyitoo/bson-rs.git"
+bson = "*"
 
 [dependencies.mongo_c_driver_wrapper]
 path = "mongo_c_driver_wrapper"
