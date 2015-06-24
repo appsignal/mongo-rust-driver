@@ -13,6 +13,7 @@ static VERSION: &'static str = "1.1.8"; // Should be the same as the version in 
 fn main() {
     let out_dir     = env::var("OUT_DIR").unwrap();
     let current_dir = env::var("CARGO_MANIFEST_DIR").unwrap();
+    
     let driver_path = format!(
         "mongo-c-driver-{}",
         VERSION
@@ -62,10 +63,15 @@ fn main() {
         let bindings_rs_path = Path::new(&current_dir).join("src/bindings.rs");
         let mongo_h_path     = Path::new(&current_dir).join(&driver_path).join("src/mongoc/mongoc.h");
         let bson_path        = Path::new(&current_dir).join(&driver_path).join("src/libbson/src/bson");
+
+        // Add include CLANG_INCLUDE_DIR so that several issue in searching
+        // clang include dir
         bindgen::builder()
             .emit_builtins()
             .header(mongo_h_path.to_str().unwrap())
             .clang_arg(format!("-I{}", bson_path.to_str().unwrap()))
+            .clang_arg(format!("-I{}", env::var("CLANG_INCLUDE_DIR")
+                               .unwrap_or(String::from("/usr/lib/clang/3.6.1/include"))))
             .generate()
             .unwrap()
             .write_to_file(&bindings_rs_path)
