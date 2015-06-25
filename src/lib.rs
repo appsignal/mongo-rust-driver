@@ -12,6 +12,7 @@ pub mod bsonc;
 pub mod client;
 pub mod collection;
 pub mod cursor;
+pub mod database;
 pub mod error;
 pub mod flags;
 pub mod read_prefs;

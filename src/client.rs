@@ -3,8 +3,9 @@ use std::ffi::CString;
 
 use mongo_c_driver_wrapper::bindings;
 
+use super::collection::{Collection,CreatedBy};
+use super::database::Database;
 use super::uri::Uri;
-use super::collection::Collection;
 
 // TODO: We're using a sort of poor man's Arc here
 // with this root bool, there must be a better way.
@@ -91,18 +92,28 @@ pub struct Client<'a> {
 impl<'a> Client<'a> {
     pub fn get_collection<S: Into<Vec<u8>>>(&'a self, db: S, collection: S) -> Collection<'a> {
         assert!(!self.inner.is_null());
-        let mut coll;
-        unsafe {
+        let coll = unsafe {
             let db_cstring         = CString::new(db).unwrap();
             let collection_cstring = CString::new(collection).unwrap();
-
-            coll = bindings::mongoc_client_get_collection(
+            bindings::mongoc_client_get_collection(
                 self.inner,
                 db_cstring.as_ptr(),
                 collection_cstring.as_ptr()
-            );
-        }
-        Collection::new(self, coll)
+            )
+        };
+        Collection::new(CreatedBy::Client(self), coll)
+    }
+
+    pub fn get_database<S: Into<Vec<u8>>>(&'a self, db: S) -> Database<'a> {
+        assert!(!self.inner.is_null());
+        let coll = unsafe {
+            let db_cstring = CString::new(db).unwrap();
+            bindings::mongoc_client_get_database(
+                self.inner,
+                db_cstring.as_ptr()
+            )
+        };
+        Database::new(self, coll)
     }
 }
 
@@ -128,13 +139,15 @@ mod tests {
         let uri = Uri::new("mongodb://localhost:27017/");
         let pool = ClientPool::new(uri);
 
-        // Pop a client and insert a couple of times
-        for _ in 0..10 {
-            let client = pool.pop();
-            pool.pop();
-            let collection = client.get_collection("rust_test", "items");
-            assert_eq!("items", collection.get_name().to_mut());
-        }
+        // Pop a client and get a database and collection
+        let client = pool.pop();
+        pool.pop();
+
+        let database = client.get_database("rust_test");
+        assert_eq!("rust_test", database.get_name().to_mut());
+
+        let collection = client.get_collection("rust_test", "items");
+        assert_eq!("items", collection.get_name().to_mut());
     }
 
     #[test]

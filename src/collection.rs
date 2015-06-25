@@ -12,12 +12,14 @@ use super::bsonc::Bsonc;
 use super::client::Client;
 use super::cursor;
 use super::cursor::Cursor;
+use super::database::Database;
 use super::flags::{Flags,FlagsValue,InsertFlag,QueryFlag,RemoveFlag};
 use super::write_concern::WriteConcern;
 use super::read_prefs::ReadPrefs;
 
 pub enum CreatedBy<'a> {
-    Client(&'a Client<'a>)
+    Client(&'a Client<'a>),
+    Database(&'a Database<'a>)
 }
 
 pub struct Collection<'a> {
@@ -27,12 +29,12 @@ pub struct Collection<'a> {
 
 impl<'a> Collection<'a> {
     pub fn new(
-        client: &'a Client<'a>,
-        inner: *mut bindings::mongoc_collection_t
+        created_by: CreatedBy<'a>,
+        inner:      *mut bindings::mongoc_collection_t
     ) -> Collection<'a> {
         assert!(!inner.is_null());
         Collection {
-            _created_by: CreatedBy::Client(client),
+            _created_by: created_by,
             inner:       inner
         }
     }
