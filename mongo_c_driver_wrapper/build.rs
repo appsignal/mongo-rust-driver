@@ -62,14 +62,30 @@ fn main() {
         let bindings_rs_path = Path::new(&current_dir).join("src/bindings.rs");
         let mongo_h_path     = Path::new(&current_dir).join(&driver_path).join("src/mongoc/mongoc.h");
         let bson_path        = Path::new(&current_dir).join(&driver_path).join("src/libbson/src/bson");
-        bindgen::builder()
-            .emit_builtins()
-            .header(mongo_h_path.to_str().unwrap())
-            .clang_arg(format!("-I{}", bson_path.to_str().unwrap()))
-            .generate()
-            .unwrap()
-            .write_to_file(&bindings_rs_path)
-            .unwrap();
+        let mongo_h_path_arg = mongo_h_path.to_str().unwrap();
+        let bson_path_arg    = bson_path.to_str().unwrap();
+
+        let mut builder = bindgen::builder();
+        builder.emit_builtins();
+        builder.header(mongo_h_path_arg);
+        builder.clang_arg("-I".to_owned());
+        builder.clang_arg(bson_path_arg);
+
+        // Add clang include dir if it's detected by bindgen.
+        if let Some(path) = bindgen::get_include_dir() {
+            builder.clang_arg("-I".to_owned());
+            builder.clang_arg(path);
+        }
+
+        // Add clang include dir from env var, use as a last resort
+        // if include cannot be detected normally.
+        if let Ok(path) = env::var("CLANG_INCLUDE_DIR") {
+            builder.clang_arg("-I".to_owned());
+            builder.clang_arg(path);
+        }
+
+        let binding = builder.generate().unwrap();
+        binding.write_to_file(&bindings_rs_path).unwrap();
     }
 
     // Output to Cargo
