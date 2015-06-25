@@ -289,7 +289,7 @@ mod tests {
     use bson;
     use super::super::uri::Uri;
     use super::super::client::ClientPool;
-    use super::super::flags::{Flags};
+    use super::super::flags;
 
     #[test]
     fn test_mutation_and_finding() {
@@ -356,7 +356,7 @@ mod tests {
         fields.insert("key_1".to_string(), bson::Bson::Boolean(true));
         {
             let mut cursor = collection.find_with_options(
-                &Flags::new(),
+                &flags::Flags::new(),
                 0,
                 0,
                 0,
