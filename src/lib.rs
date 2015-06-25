@@ -1,5 +1,3 @@
-#![feature(scoped)]
-
 extern crate libc;
 extern crate mongo_c_driver_wrapper;
 extern crate bson;

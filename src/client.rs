@@ -158,18 +158,18 @@ mod tests {
         let pool = ClientPool::new(uri);
 
         let pool1 = pool.clone();
-        let guard1 = thread::scoped(move || {
+        let guard1 = thread::spawn(move || {
             let client = pool1.pop();
             client.get_collection("test", "items");
         });
 
         let pool2 = pool.clone();
-        let guard2 = thread::scoped(move || {
+        let guard2 = thread::spawn(move || {
             let client = pool2.pop();
             client.get_collection("test", "items");
         });
 
-        guard1.join();
-        guard2.join();
+        guard1.join().unwrap();
+        guard2.join().unwrap();
     }
 }

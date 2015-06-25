@@ -87,10 +87,8 @@ impl<'a> Drop for Database<'a> {
 
 #[cfg(test)]
 mod tests {
-    use bson;
     use super::super::uri::Uri;
     use super::super::client::ClientPool;
-    use super::super::flags::{Flags};
 
     #[test]
     fn test_get_collection_and_name() {
