@@ -132,7 +132,8 @@ mod tests {
         for _ in 0..10 {
             let client = pool.pop();
             pool.pop();
-            client.get_collection("rust_test", "items");
+            let collection = client.get_collection("rust_test", "items");
+            assert_eq!("items", collection.get_name().to_mut());
         }
     }
 

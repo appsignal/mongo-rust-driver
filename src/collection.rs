@@ -1,4 +1,6 @@
 use std::ptr;
+use std::ffi::CStr;
+use std::borrow::Cow;
 
 use mongo_c_driver_wrapper::bindings;
 
@@ -158,6 +160,13 @@ impl<'a> Collection<'a> {
         )
     }
 
+    pub fn get_name(&self) -> Cow<str> {
+        let cstr = unsafe {
+            CStr::from_ptr(bindings::mongoc_collection_get_name(self.inner))
+        };
+        String::from_utf8_lossy(cstr.to_bytes())
+    }
+
     pub fn insert_with_options(
         &'a self,
         insert_flags:  &Flags<InsertFlag>,
@@ -287,6 +296,8 @@ mod tests {
         let client     = pool.pop();
         let mut collection = client.get_collection("rust_driver_test", "items");
         collection.drop().unwrap_or(());
+
+        assert_eq!("items", collection.get_name().to_mut());
 
         let mut document = bson::Document::new();
         document.insert("key_1".to_string(), bson::Bson::String("Value 1".to_string()));
