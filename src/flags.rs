@@ -1,18 +1,20 @@
 use mongo_c_driver_wrapper::bindings;
 
+use std::collections::BTreeSet;
+
 pub struct Flags<T> {
-    flags: Vec<T>
+    flags: BTreeSet<T>
 }
 
-impl <T> Flags<T> {
+impl <T> Flags<T> where T: Ord {
     pub fn new() -> Flags<T> {
         Flags {
-            flags: Vec::new()
+            flags: BTreeSet::new()
         }
     }
 
     pub fn add(&mut self, flag: T) {
-        self.flags.push(flag);
+        self.flags.insert(flag);
     }
 }
 
@@ -22,6 +24,7 @@ pub trait FlagsValue {
 
 /// Flags for insert operations
 /// See: http://api.mongodb.org/c/current/mongoc_insert_flags_t.html
+#[derive(Eq,PartialEq,Ord,PartialOrd)]
 pub enum InsertFlag {
     ContinueOnError,
     NoValidate
@@ -44,6 +47,7 @@ impl FlagsValue for Flags<InsertFlag> {
 
 /// Flags for query operations
 /// See: http://api.mongodb.org/c/current/mongoc_query_flags_t.html
+#[derive(Eq,PartialEq,Ord,PartialOrd)]
 pub enum QueryFlag {
     TailableCursor,
     SlaveOk,
@@ -76,6 +80,7 @@ impl FlagsValue for Flags<QueryFlag> {
 
 /// Flags for deletion operations
 /// See: http://api.mongodb.org/c/1.1.8/mongoc_remove_flags_t.html
+#[derive(Eq,PartialEq,Ord,PartialOrd)]
 pub enum RemoveFlag {
     SingleRemove
 }
@@ -103,6 +108,7 @@ mod tests {
         assert_eq!(1, flags.flags());
 
         flags.add(super::InsertFlag::NoValidate);
+        flags.add(super::InsertFlag::NoValidate);
         assert_eq!(31, flags.flags());
     }
 
@@ -115,6 +121,17 @@ mod tests {
         assert_eq!(2, flags.flags());
 
         flags.add(super::QueryFlag::Partial);
+        flags.add(super::QueryFlag::Partial);
         assert_eq!(130, flags.flags());
+    }
+
+    #[test]
+    pub fn test_remove_flags() {
+        let mut flags = super::Flags::new();
+        assert_eq!(0, flags.flags());
+
+        flags.add(super::RemoveFlag::SingleRemove);
+        flags.add(super::RemoveFlag::SingleRemove);
+        assert_eq!(1, flags.flags());
     }
 }
