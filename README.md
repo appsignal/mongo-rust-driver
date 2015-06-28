@@ -13,7 +13,12 @@ The API is experimental, it might change at any time.
 
 ## Compatibility
 
-The driver currently only builds on Unix, only tested on Mac Os X so far.
+The driver currently only builds on Unix, only tested on Mac Os X so far. On Mac Os X you might need to
+set this environment var for building to work (see https://github.com/crabtw/rust-bindgen#building for details):
+
+```
+export DYLD_LIBRARY_PATH=/Library/Developer/CommandLineTools/usr/lib
+```
 
 ## Contributing
 
