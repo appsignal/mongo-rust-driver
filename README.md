@@ -13,7 +13,7 @@ The API is experimental, it might change at any time.
 
 ## Compatibility
 
-The driver currently only builds on Unix, only tested on Mac Os X so far. On Mac Os X you might need to
+The driver currently only builds on Unix, tested on Mac Os X and Linux so far. On Mac Os X you might need to
 set this environment var for building to work (see https://github.com/crabtw/rust-bindgen#building for details):
 
 ```
