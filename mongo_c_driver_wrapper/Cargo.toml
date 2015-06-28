@@ -1,6 +1,6 @@
 [package]
 name    = "mongo_c_driver_wrapper"
-version = "1.1.8"
+version = "1.1.7"
 build   = "build.rs"
 authors = ["Thijs Cadier <thijs@appsignal.com>"]
 

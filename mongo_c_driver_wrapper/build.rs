@@ -8,7 +8,7 @@ use std::fs::PathExt;
 use std::path::Path;
 use std::process::Command;
 
-static VERSION: &'static str = "1.1.8"; // Should be the same as the version in the manifest
+static VERSION: &'static str = "1.1.7"; // Should be the same as the version in the manifest
 
 fn main() {
     let out_dir     = env::var("OUT_DIR").unwrap();
