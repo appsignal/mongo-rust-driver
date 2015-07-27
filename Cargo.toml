@@ -14,4 +14,4 @@ bson = "*"
 
 [dependencies.mongo_c_driver_wrapper]
 path    = "mongo_c_driver_wrapper"
-version = "1.1.7"
+version = "1.1.10"
