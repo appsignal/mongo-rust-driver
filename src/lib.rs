@@ -3,6 +3,7 @@ extern crate mongo_c_driver_wrapper;
 extern crate bson;
 
 use std::result;
+use std::sync::{Once,ONCE_INIT};
 
 use mongo_c_driver_wrapper::bindings;
 
@@ -21,37 +22,21 @@ pub use error::{MongoError,BsoncError,InvalidParamsError};
 
 pub type Result<T> = result::Result<T, MongoError>;
 
-static mut INITIALIZED: bool = false;
+static MONGOC_INIT: Once = ONCE_INIT;
 
 /// Init mongo driver, needs to be called once before doing
 /// anything else.
 pub fn init() {
-  unsafe {
-      bindings::mongoc_init();
-      INITIALIZED = true;
-  }
-}
-
-/// Clean up mongo driver's resources
-pub fn cleanup() {
-    unsafe {
-        bindings::mongoc_cleanup();
-        INITIALIZED = false;
-    }
-}
-
-pub fn is_initialized() -> bool {
-    unsafe { INITIALIZED }
+    MONGOC_INIT.call_once(|| {
+        unsafe { bindings::mongoc_init(); }
+    });
 }
 
 #[cfg(test)]
 mod tests {
     #[test]
-    fn test_init_and_cleanup() {
+    fn test_init() {
         super::init();
-        assert!(super::is_initialized());
-
-        super::cleanup();
-        assert!(!super::is_initialized());
+        super::init();
     }
 }
