@@ -3,7 +3,7 @@ use std::ptr;
 use std::thread;
 
 use mongo_c_driver_wrapper::bindings;
-use bson::{Bson,Document};
+use bson::{Bson,Document,oid};
 
 use super::BsoncError;
 use super::bsonc;
@@ -138,7 +138,7 @@ pub struct TailingCursor<'a> {
     find_options: FindOptions,
     tail_options: TailOptions,
     cursor:       Option<Cursor<'a>>,
-    last_seen_id: Option<[u8; 12]>,
+    last_seen_id: Option<oid::ObjectId>,
     retry_count:  u32
 }
 
@@ -175,7 +175,7 @@ impl<'a> Iterator for TailingCursor<'a> {
             {
                 if self.cursor.is_none() {
                     // Add the last seen id to the query if it's present.
-                    match self.last_seen_id {
+                    match self.last_seen_id.take() {
                         Some(id) => {
                             let mut gt_id = Document::new();
                             gt_id.insert("$gt".to_string(), Bson::ObjectId(id));

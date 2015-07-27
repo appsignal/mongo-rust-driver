@@ -10,7 +10,9 @@ license     = "MIT"
 
 [dependencies]
 libc = "*"
-bson = "*"
+
+[dependencies.bson]
+git = "https://github.com/zonyitoo/bson-rs.git"
 
 [dependencies.mongo_c_driver_wrapper]
 path    = "mongo_c_driver_wrapper"
