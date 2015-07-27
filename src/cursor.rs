@@ -111,9 +111,8 @@ impl<'a> Iterator for Cursor<'a> {
             assert!(!bson_ptr.is_null());
 
             // Parse and return bson document.
-            let bsonc    = bsonc::Bsonc::from_ptr(bson_ptr);
-            let document = bsonc.as_document();
-            match document {
+            let bsonc = bsonc::Bsonc::from_ptr(bson_ptr);
+            match bsonc.as_document() {
                 Ok(document) => return Some(Ok(document)),
                 Err(error)   => return Some(Err(error.into()))
             }

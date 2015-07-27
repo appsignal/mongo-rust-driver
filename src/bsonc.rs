@@ -17,6 +17,10 @@ pub struct Bsonc {
 }
 
 impl Bsonc {
+    pub fn new() -> Bsonc {
+        Bsonc::from_ptr(unsafe { bindings::bson_new() })
+    }
+
     pub fn from_ptr(inner: *const bindings::bson_t) -> Bsonc {
         assert!(!inner.is_null());
         Bsonc { inner: inner as *mut bindings::bson_t }
@@ -93,6 +97,10 @@ impl Bsonc {
 
     pub fn inner(&self) -> *const bindings::bson_t {
         self.inner
+    }
+
+    pub fn mut_inner(&mut self) -> *mut bindings::bson_t {
+        self.inner as *mut bindings::bson_t
     }
 }
 

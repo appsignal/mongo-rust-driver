@@ -8,6 +8,7 @@ use std::sync::{Once,ONCE_INIT};
 use mongo_c_driver_wrapper::bindings;
 
 pub mod bsonc;
+pub mod bulk_operation;
 pub mod client;
 pub mod collection;
 pub mod cursor;

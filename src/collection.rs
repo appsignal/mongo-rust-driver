@@ -9,6 +9,7 @@ use bson::{Bson,Document};
 use super::Result;
 use super::{BsoncError,InvalidParamsError};
 use super::bsonc::Bsonc;
+use super::bulk_operation::BulkOperation;
 use super::client::Client;
 use super::cursor;
 use super::cursor::{Cursor,TailingCursor};
@@ -25,6 +26,20 @@ pub enum CreatedBy<'a> {
 pub struct Collection<'a> {
     _created_by: CreatedBy<'a>,
     inner:      *mut bindings::mongoc_collection_t
+}
+
+pub struct BulkOperationOptions {
+    pub ordered:       bool,
+    pub write_concern: WriteConcern
+}
+
+impl BulkOperationOptions {
+    pub fn default() -> BulkOperationOptions {
+        BulkOperationOptions {
+            ordered:       false,
+            write_concern: WriteConcern::new()
+        }
+    }
 }
 
 pub struct CountOptions {
@@ -158,6 +173,26 @@ impl<'a> Collection<'a> {
         } else {
             Err(error.into())
         }
+    }
+
+    pub fn create_bulk_operation(
+        &'a self,
+        options: Option<&BulkOperationOptions>
+    ) -> BulkOperation<'a> {
+        assert!(!self.inner.is_null());
+
+        let default_options = BulkOperationOptions::default();
+        let options         = options.unwrap_or(&default_options);
+
+        let inner = unsafe {
+            bindings::mongoc_collection_create_bulk_operation(
+                self.inner,
+                options.ordered as u8,
+                options.write_concern.inner()
+            )
+        };
+
+        BulkOperation::new(self, inner)
     }
 
     pub fn drop(&mut self) -> Result<()> {
