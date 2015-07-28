@@ -26,7 +26,7 @@ static MONGOC_INIT: Once = ONCE_INIT;
 
 /// Init mongo driver, needs to be called once before doing
 /// anything else.
-pub fn init() {
+fn init() {
     MONGOC_INIT.call_once(|| {
         unsafe { bindings::mongoc_init(); }
     });

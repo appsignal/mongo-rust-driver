@@ -19,6 +19,7 @@ impl ClientPool {
     /// Create a new ClientPool
     /// See: http://api.mongodb.org/c/current/mongoc_client_pool_t.html
     pub fn new(uri: Uri) -> ClientPool {
+        super::init();
         let pool = unsafe {
             let pool_ptr = bindings::mongoc_client_pool_new(uri.inner());
             assert!(!pool_ptr.is_null());
@@ -134,8 +135,6 @@ mod tests {
 
     #[test]
     fn test_new_pool_and_pop_client() {
-        super::super::init();
-
         let uri = Uri::new("mongodb://localhost:27017/");
         let pool = ClientPool::new(uri);
 
@@ -152,8 +151,6 @@ mod tests {
 
     #[test]
     fn test_new_pool_and_pop_client_in_threads() {
-        super::super::init();
-
         let uri = Uri::new("mongodb://localhost:27017/");
         let pool = ClientPool::new(uri);
 
