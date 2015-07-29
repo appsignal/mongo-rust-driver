@@ -413,7 +413,7 @@ mod tests {
     #[test]
     fn test_command() {
         let uri      = Uri::new("mongodb://localhost:27017/");
-        let pool     = ClientPool::new(uri);
+        let pool     = ClientPool::new(uri, None);
         let client   = pool.pop();
         let collection = client.get_collection("rust_driver_test", "items");
 
@@ -427,7 +427,7 @@ mod tests {
     #[test]
     fn test_mutation_and_finding() {
         let uri        = Uri::new("mongodb://localhost:27017/");
-        let pool       = ClientPool::new(uri);
+        let pool       = ClientPool::new(uri, None);
         let client     = pool.pop();
         let mut collection = client.get_collection("rust_driver_test", "items");
         collection.drop().unwrap_or(());
@@ -510,7 +510,7 @@ mod tests {
     #[test]
     fn test_insert_failure() {
         let uri        = Uri::new("mongodb://localhost:27018/"); // There should be no mongo server here
-        let pool       = ClientPool::new(uri);
+        let pool       = ClientPool::new(uri, None);
         let client     = pool.pop();
         let collection = client.get_collection("rust_driver_test", "items");
         let document   = bson::Document::new();
