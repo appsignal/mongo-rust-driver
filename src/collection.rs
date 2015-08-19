@@ -7,6 +7,7 @@ use mongo_c_driver_wrapper::bindings;
 use bson::{Bson,Document};
 
 use super::Result;
+use super::CommandAndFindOptions;
 use super::{BsoncError,InvalidParamsError};
 use super::bsonc::Bsonc;
 use super::bulk_operation::BulkOperation;
@@ -57,28 +58,6 @@ impl CountOptions {
             skip:        0,
             limit:       0,
             opts:        None,
-            read_prefs:  None
-        }
-    }
-}
-
-pub struct FindOptions {
-    pub query_flags: Flags<QueryFlag>,
-    pub skip:        u32,
-    pub limit:       u32,
-    pub batch_size:  u32,
-    pub fields:      Option<Document>,
-    pub read_prefs:  Option<ReadPrefs>
-}
-
-impl FindOptions {
-    pub fn default() -> FindOptions {
-        FindOptions {
-            query_flags: Flags::new(),
-            skip:        0,
-            limit:       0,
-            batch_size:  0,
-            fields:      None,
             read_prefs:  None
         }
     }
@@ -136,6 +115,47 @@ impl<'a> Collection<'a> {
             _created_by: created_by,
             inner:       inner
         }
+    }
+
+    /// Execute a command on the collection
+    ///
+    /// See: http://api.mongodb.org/c/current/mongoc_collection_command.html
+    pub fn command(
+        &'a self,
+        command: Document,
+        options: Option<&CommandAndFindOptions>
+    ) -> Result<Cursor<'a>> {
+        assert!(!self.inner.is_null());
+
+        let default_options = CommandAndFindOptions::default();
+        let options         = options.unwrap_or(&default_options);
+
+        let inner = unsafe {
+            bindings::mongoc_collection_command(
+                self.inner,
+                options.query_flags.flags(),
+                options.skip,
+                options.limit,
+                options.batch_size,
+                try!(Bsonc::from_document(&command)).inner(),
+                match options.fields {
+                    Some(ref f) => {
+                        try!(Bsonc::from_document(f)).inner()
+                    },
+                    None => ptr::null()
+                },
+                match options.read_prefs {
+                    Some(ref prefs) => prefs.inner(),
+                    None => ptr::null()
+                }
+            )
+        };
+
+        if inner.is_null() {
+            return Err(InvalidParamsError.into())
+        }
+
+        Ok(Cursor::new(cursor::CreatedBy::Collection(self), inner))
     }
 
     pub fn count(
@@ -214,11 +234,11 @@ impl<'a> Collection<'a> {
     pub fn find(
         &'a self,
         query:   &Document,
-        options: Option<&FindOptions>
+        options: Option<&CommandAndFindOptions>
     ) -> Result<Cursor<'a>> {
         assert!(!self.inner.is_null());
 
-        let default_options = FindOptions::default();
+        let default_options = CommandAndFindOptions::default();
         let options         = options.unwrap_or(&default_options);
 
         let inner = unsafe {
@@ -355,7 +375,7 @@ impl<'a> Collection<'a> {
     pub fn tail(
         &'a self,
         query:        Document,
-        find_options: Option<FindOptions>,
+        find_options: Option<CommandAndFindOptions>,
         tail_options: Option<TailOptions>
     ) -> TailingCursor<'a> {
         let mut query_with_options = Document::new();
@@ -368,7 +388,7 @@ impl<'a> Collection<'a> {
         TailingCursor::new(
             self,
             query_with_options,
-            find_options.unwrap_or(FindOptions::default()),
+            find_options.unwrap_or(CommandAndFindOptions::default()),
             tail_options.unwrap_or(TailOptions::default())
         )
     }
@@ -389,6 +409,20 @@ mod tests {
     use super::super::uri::Uri;
     use super::super::client::ClientPool;
     use super::super::flags;
+
+    #[test]
+    fn test_command() {
+        let uri      = Uri::new("mongodb://localhost:27017/");
+        let pool     = ClientPool::new(uri);
+        let client   = pool.pop();
+        let collection = client.get_collection("rust_driver_test", "items");
+
+        let mut command = bson::Document::new();
+        command.insert("ping".to_string(), bson::Bson::I32(1));
+
+        let result = collection.command(command, None).unwrap().next().unwrap().unwrap();
+        assert!(result.contains_key("ok"));
+    }
 
     #[test]
     fn test_mutation_and_finding() {
@@ -454,7 +488,7 @@ mod tests {
         {
             let mut fields = bson::Document::new();
             fields.insert("key_1".to_string(), bson::Bson::Boolean(true));
-            let options = super::FindOptions {
+            let options = super::super::CommandAndFindOptions {
                 query_flags: flags::Flags::new(),
                 skip:        0,
                 limit:       0,

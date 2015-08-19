@@ -33,6 +33,28 @@ fn init() {
     });
 }
 
+pub struct CommandAndFindOptions {
+    pub query_flags: flags::Flags<flags::QueryFlag>,
+    pub skip:        u32,
+    pub limit:       u32,
+    pub batch_size:  u32,
+    pub fields:      Option<bson::Document>,
+    pub read_prefs:  Option<read_prefs::ReadPrefs>
+}
+
+impl CommandAndFindOptions {
+    pub fn default() -> CommandAndFindOptions {
+        CommandAndFindOptions {
+            query_flags: flags::Flags::new(),
+            skip:        0,
+            limit:       0,
+            batch_size:  0,
+            fields:      None,
+            read_prefs:  None
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     #[test]

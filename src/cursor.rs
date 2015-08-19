@@ -8,14 +8,17 @@ use bson::{Bson,Document,oid};
 use super::BsoncError;
 use super::bsonc;
 use super::client::Client;
+use super::database::Database;
 use super::flags::QueryFlag;
-use super::collection::{Collection,FindOptions,TailOptions};
+use super::collection::{Collection,TailOptions};
+use super::CommandAndFindOptions;
 
 use super::Result;
 
 pub enum CreatedBy<'a> {
-    Collection(&'a Collection<'a>),
-    Client(&'a Client<'a>)
+    Client(&'a Client<'a>),
+    Database(&'a Database<'a>),
+    Collection(&'a Collection<'a>)
 }
 
 pub struct Cursor<'a> {
@@ -134,7 +137,7 @@ impl<'a> Drop for Cursor<'a> {
 pub struct TailingCursor<'a> {
     collection:   &'a Collection<'a>,
     query:        Document,
-    find_options: FindOptions,
+    find_options: CommandAndFindOptions,
     tail_options: TailOptions,
     cursor:       Option<Cursor<'a>>,
     last_seen_id: Option<oid::ObjectId>,
@@ -145,7 +148,7 @@ impl<'a> TailingCursor<'a> {
     pub fn new(
         collection:   &'a Collection<'a>,
         query:        Document,
-        find_options: FindOptions,
+        find_options: CommandAndFindOptions,
         tail_options: TailOptions
     ) -> TailingCursor<'a> {
         // Add flags to make query tailable

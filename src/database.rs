@@ -6,10 +6,15 @@ use mongo_c_driver_wrapper::bindings;
 use bson::Document;
 
 use super::Result;
+use super::CommandAndFindOptions;
+use super::{BsoncError,InvalidParamsError};
 use super::bsonc::Bsonc;
 use super::client::Client;
-use super::collection::{Collection,CreatedBy};
-use error::BsoncError;
+use super::collection;
+use super::collection::Collection;
+use super::cursor;
+use super::cursor::Cursor;
+use flags::FlagsValue;
 
 pub struct Database<'a> {
     _client: &'a Client<'a>,
@@ -26,6 +31,47 @@ impl<'a> Database<'a> {
             _client: client,
             inner:   inner
         }
+    }
+
+    /// Execute a command on the database
+    ///
+    /// See: http://api.mongodb.org/c/current/mongoc_database_command.html
+    pub fn command(
+        &'a self,
+        command: Document,
+        options: Option<&CommandAndFindOptions>
+    ) -> Result<Cursor<'a>> {
+        assert!(!self.inner.is_null());
+
+        let default_options = CommandAndFindOptions::default();
+        let options         = options.unwrap_or(&default_options);
+
+        let inner = unsafe {
+            bindings::mongoc_database_command(
+                self.inner,
+                options.query_flags.flags(),
+                options.skip,
+                options.limit,
+                options.batch_size,
+                try!(Bsonc::from_document(&command)).inner(),
+                match options.fields {
+                    Some(ref f) => {
+                        try!(Bsonc::from_document(f)).inner()
+                    },
+                    None => ptr::null()
+                },
+                match options.read_prefs {
+                    Some(ref prefs) => prefs.inner(),
+                    None => ptr::null()
+                }
+            )
+        };
+
+        if inner.is_null() {
+            return Err(InvalidParamsError.into())
+        }
+
+        Ok(Cursor::new(cursor::CreatedBy::Database(self), inner))
     }
 
     pub fn create_collection<S: Into<Vec<u8>>>(
@@ -50,7 +96,7 @@ impl<'a> Database<'a> {
         };
 
         if error.is_empty() {
-            Ok(Collection::new(CreatedBy::Database(self), coll))
+            Ok(Collection::new(collection::CreatedBy::Database(self), coll))
         } else {
             Err(error.into())
         }
@@ -65,7 +111,7 @@ impl<'a> Database<'a> {
                 collection_cstring.as_ptr()
             )
         };
-        Collection::new(CreatedBy::Database(self), coll)
+        Collection::new(collection::CreatedBy::Database(self), coll)
     }
 
     pub fn get_name(&self) -> Cow<str> {
@@ -87,8 +133,23 @@ impl<'a> Drop for Database<'a> {
 
 #[cfg(test)]
 mod tests {
+    use bson;
     use super::super::uri::Uri;
     use super::super::client::ClientPool;
+
+    #[test]
+    fn test_command() {
+        let uri      = Uri::new("mongodb://localhost:27017/");
+        let pool     = ClientPool::new(uri);
+        let client   = pool.pop();
+        let database = client.get_database("rust_test");
+
+        let mut command = bson::Document::new();
+        command.insert("ping".to_string(), bson::Bson::I32(1));
+
+        let result = database.command(command, None).unwrap().next().unwrap().unwrap();
+        assert!(result.contains_key("ok"));
+    }
 
     #[test]
     fn test_get_collection_and_name() {
