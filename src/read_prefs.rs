@@ -38,6 +38,11 @@ impl ReadPrefs {
         assert!(!self.inner.is_null());
         self.inner
     }
+
+    pub fn mut_inner(&self) -> *mut bindings::mongoc_read_prefs_t {
+        assert!(!self.inner.is_null());
+        self.inner as *mut bindings::mongoc_read_prefs_t
+    }
 }
 
 impl Drop for ReadPrefs {

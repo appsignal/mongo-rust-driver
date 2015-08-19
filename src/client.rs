@@ -1,11 +1,18 @@
 use std::fmt;
 use std::ffi::CString;
+use std::ptr;
 
 use mongo_c_driver_wrapper::bindings;
 
+use bson::Document;
+
+use super::Result;
+use super::BsoncError;
+use super::bsonc::Bsonc;
 use super::collection::{Collection,CreatedBy};
 use super::database::Database;
 use super::uri::Uri;
+use super::read_prefs::ReadPrefs;
 
 // TODO: We're using a sort of poor man's Arc here
 // with this root bool, there must be a better way.
@@ -116,6 +123,39 @@ impl<'a> Client<'a> {
         };
         Database::new(self, coll)
     }
+
+    /// Queries the server for the current server status.
+    ///
+    /// See: http://api.mongodb.org/c/current/mongoc_client_get_server_status.html
+    pub fn get_server_status(&self, read_prefs: Option<ReadPrefs>) -> Result<Document> {
+        assert!(!self.inner.is_null());
+
+        // Bsonc to store the reply
+        let mut reply = Bsonc::new();
+        // Empty error that might be filled
+        let mut error = BsoncError::empty();
+
+        let success = unsafe {
+            bindings::mongoc_client_get_server_status(
+                self.inner,
+                match read_prefs {
+                    Some(ref prefs) => prefs.mut_inner(),
+                    None => ptr::null_mut()
+                },
+                reply.mut_inner(),
+                error.mut_inner()
+            )
+        };
+
+        if success == 1 {
+            match reply.as_document() {
+                Ok(document) => return Ok(document),
+                Err(error)   => return Err(error.into())
+            }
+        } else {
+            Err(error.into())
+        }
+    }
 }
 
 impl<'a> Drop for Client<'a> {
@@ -168,5 +208,17 @@ mod tests {
 
         guard1.join().unwrap();
         guard2.join().unwrap();
+    }
+
+    #[test]
+    fn test_get_server_status() {
+        let uri = Uri::new("mongodb://localhost:27017/");
+        let pool = ClientPool::new(uri);
+        let client = pool.pop();
+
+        let status = client.get_server_status(None).unwrap();
+
+        assert!(status.contains_key("host"));
+        assert!(status.contains_key("version"));
     }
 }
