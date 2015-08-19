@@ -162,7 +162,7 @@ impl<'a> Collection<'a> {
                 },
                 match options.read_prefs {
                     Some(ref prefs) => prefs.inner(),
-                    None        => ptr::null()
+                    None            => ptr::null()
                 },
                 error.mut_inner()
             )

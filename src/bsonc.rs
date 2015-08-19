@@ -96,10 +96,12 @@ impl Bsonc {
     }
 
     pub fn inner(&self) -> *const bindings::bson_t {
+        assert!(!self.inner.is_null());
         self.inner
     }
 
     pub fn mut_inner(&mut self) -> *mut bindings::bson_t {
+        assert!(!self.inner.is_null());
         self.inner as *mut bindings::bson_t
     }
 }
