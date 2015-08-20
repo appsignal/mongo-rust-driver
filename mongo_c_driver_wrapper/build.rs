@@ -56,8 +56,8 @@ fn main() {
         command.current_dir(&driver_path);
 
         // Use env var to override build target if set
-        if let Ok(target) = env::var("MONGO_C_DRIVER_TARGET") {
-            command.arg(format!("--target={}", target));
+        if let Ok(host) = env::var("MONGO_C_DRIVER_HOST") {
+            command.arg(format!("--host={}", host));
         }
 
         assert!(command.status().unwrap().success());
