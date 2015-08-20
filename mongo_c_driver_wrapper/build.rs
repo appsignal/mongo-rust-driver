@@ -44,17 +44,23 @@ fn main() {
                                    .success());
 
         // Configure and install
-        assert!(Command::new("sh").arg("configure")
-                          .arg("--enable-ssl=yes")
-                          .arg("--enable-sasl=no")
-                          .arg("--enable-static=yes")
-                          .arg("--enable-shared=no")
-                          .arg("--with-libbson=bundled")
-                          .arg(format!("--prefix={}", &out_dir))
-                          .current_dir(&driver_path)
-                          .status()
-                          .unwrap()
-                          .success());
+        let mut command = Command::new("sh");
+        command.arg("configure");
+        command.arg("--enable-ssl=yes");
+        command.arg("--enable-sasl=no");
+        command.arg("--enable-static=yes");
+        command.arg("--enable-shared=no");
+        command.arg("--with-libbson=bundled");
+        command.arg(format!("--prefix={}", &out_dir));
+        command.env("BSON_CFLAGS", "-fPIC");
+        command.current_dir(&driver_path);
+
+        // Use env var to override build target if set
+        if let Ok(target) = env::var("MONGO_C_DRIVER_TARGET") {
+            command.arg(format!("--target={}", target));
+        }
+
+        assert!(command.status().unwrap().success());
         assert!(Command::new("make").current_dir(&driver_path).status().unwrap().success());
         assert!(Command::new("make").arg("install").current_dir(&driver_path).status().unwrap().success());
 
