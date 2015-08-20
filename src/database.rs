@@ -140,7 +140,7 @@ mod tests {
     #[test]
     fn test_command() {
         let uri      = Uri::new("mongodb://localhost:27017/");
-        let pool     = ClientPool::new(uri);
+        let pool     = ClientPool::new(uri, None);
         let client   = pool.pop();
         let database = client.get_database("rust_test");
 
@@ -154,7 +154,7 @@ mod tests {
     #[test]
     fn test_get_collection_and_name() {
         let uri      = Uri::new("mongodb://localhost:27017/");
-        let pool     = ClientPool::new(uri);
+        let pool     = ClientPool::new(uri, None);
         let client   = pool.pop();
         let database = client.get_database("rust_test");
 
@@ -167,7 +167,7 @@ mod tests {
     #[test]
     fn test_create_collection() {
         let uri      = Uri::new("mongodb://localhost:27017/");
-        let pool     = ClientPool::new(uri);
+        let pool     = ClientPool::new(uri, None);
         let client   = pool.pop();
         let database = client.get_database("rust_test");
         database.get_collection("created_collection").drop().unwrap_or(());

@@ -1,5 +1,6 @@
 use std::fmt;
 use std::ffi::CString;
+use std::path::PathBuf;
 use std::ptr;
 
 use mongo_c_driver_wrapper::bindings;
@@ -23,14 +24,27 @@ pub struct ClientPool {
 }
 
 impl ClientPool {
-    /// Create a new ClientPool
+    /// Create a new ClientPool with optionally SSL options
+    ///
     /// See: http://api.mongodb.org/c/current/mongoc_client_pool_t.html
-    pub fn new(uri: Uri) -> ClientPool {
+    /// And: http://api.mongodb.org/c/current/mongoc_ssl_opt_t.html
+    pub fn new(uri: Uri, ssl_options: Option<SslOptions>) -> ClientPool {
         super::init();
         let pool = unsafe {
             let pool_ptr = bindings::mongoc_client_pool_new(uri.inner());
             assert!(!pool_ptr.is_null());
             pool_ptr
+        };
+        match ssl_options {
+            Some(options) => {
+                unsafe {
+                    bindings::mongoc_client_pool_set_ssl_opts(
+                        pool,
+                        options.inner()
+                    );
+                }
+            },
+            None => ()
         };
         ClientPool {
             root_instance: true,
@@ -89,6 +103,83 @@ impl Drop for ClientPool {
                 bindings::mongoc_client_pool_destroy(self.inner);
             }
         }
+    }
+}
+
+pub struct SslOptions {
+    inner:                bindings::mongoc_ssl_opt_t,
+    pem_file:             Option<PathBuf>,
+    pem_password:         Option<String>,
+    ca_file:              Option<PathBuf>,
+    ca_dir:               Option<PathBuf>,
+    crl_file:             Option<PathBuf>,
+    weak_cert_validation: bool
+}
+
+impl SslOptions {
+    pub fn new(
+        pem_file:             Option<PathBuf>,
+        pem_password:         Option<String>,
+        ca_file:              Option<PathBuf>,
+        ca_dir:               Option<PathBuf>,
+        crl_file:             Option<PathBuf>,
+        weak_cert_validation: bool
+    ) -> SslOptions {
+        let ssl_options = bindings::mongoc_ssl_opt_t {
+            pem_file: match pem_file {
+                Some(ref f) => Self::path_ptr(f),
+                None    => ptr::null()
+            },
+            pem_pwd: match pem_password {
+                Some(ref password) => CString::new(password.clone()).unwrap().as_ptr(),
+                None => ptr::null()
+            },
+            ca_file: match ca_file {
+                Some(ref f) => Self::path_ptr(f),
+                None    => ptr::null()
+            },
+            ca_dir: match ca_dir {
+                Some(ref f) => Self::path_ptr(f),
+                None    => ptr::null()
+            },
+            crl_file: match crl_file {
+                Some(ref f) => Self::path_ptr(f),
+                None    => ptr::null()
+            },
+            weak_cert_validation: weak_cert_validation as u8,
+            padding:              [ptr::null_mut(); 8]
+        };
+
+        SslOptions {
+            inner:                ssl_options,
+            pem_file:             pem_file,
+            pem_password:         pem_password,
+            ca_file:              ca_file,
+            ca_dir:               ca_dir,
+            crl_file:             crl_file,
+            weak_cert_validation: weak_cert_validation
+        }
+    }
+
+    fn path_ptr(path: &PathBuf) -> *const i8 {
+        path.as_os_str().to_cstring().unwrap().as_ptr()
+    }
+
+    fn inner(&self) -> *const bindings::mongoc_ssl_opt_t {
+        &self.inner
+    }
+}
+
+impl Clone for SslOptions {
+    fn clone(&self) -> SslOptions {
+        SslOptions::new(
+            self.pem_file.clone(),
+            self.pem_password.clone(),
+            self.ca_file.clone(),
+            self.ca_dir.clone(),
+            self.crl_file.clone(),
+            self.weak_cert_validation
+        )
     }
 }
 
@@ -169,14 +260,15 @@ impl<'a> Drop for Client<'a> {
 
 #[cfg(test)]
 mod tests {
+    use std::path::PathBuf;
     use std::thread;
     use super::super::uri::Uri;
-    use super::super::client::ClientPool;
+    use super::{ClientPool,SslOptions};
 
     #[test]
     fn test_new_pool_and_pop_client() {
         let uri = Uri::new("mongodb://localhost:27017/");
-        let pool = ClientPool::new(uri);
+        let pool = ClientPool::new(uri, None);
 
         // Pop a client and get a database and collection
         let client = pool.pop();
@@ -192,7 +284,7 @@ mod tests {
     #[test]
     fn test_new_pool_and_pop_client_in_threads() {
         let uri = Uri::new("mongodb://localhost:27017/");
-        let pool = ClientPool::new(uri);
+        let pool = ClientPool::new(uri, None);
 
         let pool1 = pool.clone();
         let guard1 = thread::spawn(move || {
@@ -213,12 +305,27 @@ mod tests {
     #[test]
     fn test_get_server_status() {
         let uri = Uri::new("mongodb://localhost:27017/");
-        let pool = ClientPool::new(uri);
+        let pool = ClientPool::new(uri, None);
         let client = pool.pop();
 
         let status = client.get_server_status(None).unwrap();
 
         assert!(status.contains_key("host"));
         assert!(status.contains_key("version"));
+    }
+
+    #[test]
+    fn test_new_pool_with_ssl_options() {
+        // We currently have no way to test full operations
+        let uri = Uri::new("mongodb://localhost:27017/");
+        let ssl_options = SslOptions::new(
+            Some(PathBuf::from("/tmp/pem_file")),
+            Some("password".to_string()),
+            Some(PathBuf::from("/tmp/ca_file")),
+            Some(PathBuf::from("/tmp/ca_dir")),
+            Some(PathBuf::from("/tmp/crl_file")),
+            false
+        );
+        ClientPool::new(uri, Some(ssl_options));
     }
 }
