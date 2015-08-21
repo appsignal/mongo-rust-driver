@@ -52,6 +52,7 @@ fn main() {
         command.arg("--enable-shared=no");
         command.arg("--with-libbson=bundled");
         command.arg(format!("--prefix={}", &out_dir));
+        command.env("CFLAGS", "-fPIC");
         command.env("BSON_CFLAGS", "-fPIC");
         command.current_dir(&driver_path);
 
