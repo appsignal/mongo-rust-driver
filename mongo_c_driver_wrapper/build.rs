@@ -55,9 +55,9 @@ fn main() {
         command.env("BSON_CFLAGS", "-fPIC");
         command.current_dir(&driver_path);
 
-        // Use env var to override build target if set
-        if let Ok(host) = env::var("MONGO_C_DRIVER_HOST") {
-            command.arg(format!("--host={}", host));
+        // Use target that Cargo sets
+        if let Ok(target) = env::var("TARGET") {
+            command.arg(format!("--host={}", target));
         }
 
         assert!(command.status().unwrap().success());
