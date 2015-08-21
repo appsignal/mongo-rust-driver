@@ -11,15 +11,13 @@ use std::process::Command;
 static VERSION: &'static str = "1.1.10"; // Should be the same as the version in the manifest
 
 fn main() {
-    let out_dir     = env::var("OUT_DIR").unwrap();
+    let out_dir_var = env::var("OUT_DIR").unwrap();
+    let out_dir = format!("{}/{}", out_dir_var, VERSION);
     let current_dir = env::var("CARGO_MANIFEST_DIR").unwrap();
-    let driver_path = format!(
-        "mongo-c-driver-{}",
-        VERSION
-    );
+    let driver_src_path = format!("mongo-c-driver-{}", VERSION);
 
     let libmongoc_path = Path::new(&out_dir).join("lib/libmongoc-1.0.a");
-    if !libmongoc_path.exists() { // TODO: This should check if we're at the right version
+    if !libmongoc_path.exists() {
         // Download and extract driver archive
         let url = format!(
             "https://github.com/mongodb/mongo-c-driver/releases/download/{}/mongo-c-driver-{}.tar.gz",
@@ -54,7 +52,7 @@ fn main() {
         command.arg(format!("--prefix={}", &out_dir));
         command.env("CFLAGS", "-fPIC");
         command.env("BSON_CFLAGS", "-fPIC");
-        command.current_dir(&driver_path);
+        command.current_dir(&driver_src_path);
 
         // Use target that Cargo sets
         if let Ok(target) = env::var("TARGET") {
@@ -62,13 +60,19 @@ fn main() {
         }
 
         assert!(command.status().unwrap().success());
-        assert!(Command::new("make").current_dir(&driver_path).status().unwrap().success());
-        assert!(Command::new("make").arg("install").current_dir(&driver_path).status().unwrap().success());
+        assert!(Command::new("make").
+                         current_dir(&driver_src_path).
+                         env("CFLAGS", "-fPIC").
+                         env("BSON_CFLAGS", "-fPIC").
+                         status().
+                         unwrap().
+                         success());
+        assert!(Command::new("make").arg("install").current_dir(&driver_src_path).status().unwrap().success());
 
         // Generate bindings
         let bindings_rs_path = Path::new(&current_dir).join("src/bindings.rs");
-        let mongo_h_path     = Path::new(&current_dir).join(&driver_path).join("src/mongoc/mongoc.h");
-        let bson_path        = Path::new(&current_dir).join(&driver_path).join("src/libbson/src/bson");
+        let mongo_h_path     = Path::new(&current_dir).join(&driver_src_path).join("src/mongoc/mongoc.h");
+        let bson_path        = Path::new(&current_dir).join(&driver_src_path).join("src/libbson/src/bson");
         let mongo_h_path_arg = mongo_h_path.to_str().unwrap();
         let bson_path_arg    = bson_path.to_str().unwrap();
 
