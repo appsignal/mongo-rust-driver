@@ -48,22 +48,25 @@ fn main() {
         command.arg("--enable-sasl=no");
         command.arg("--enable-static=yes");
         command.arg("--enable-shared=no");
+        command.arg("--enable-shm-counters=no");
         command.arg("--with-libbson=bundled");
+        command.arg("--with-pic=yes");
         command.arg(format!("--prefix={}", &out_dir));
-        command.env("CFLAGS", "-fPIC");
-        command.env("BSON_CFLAGS", "-fPIC");
         command.current_dir(&driver_src_path);
+
+        // Enable debug symbols if configured for this profile
+        if env::var("DEBUG") == Ok("true".to_string()) {
+            command.arg("--enable-debug-symbols=yes");
+        }
 
         // Use target that Cargo sets
         if let Ok(target) = env::var("TARGET") {
-            command.arg(format!("--host={}", target));
+            command.arg(format!("--build={}", target));
         }
 
         assert!(command.status().unwrap().success());
         assert!(Command::new("make").
                          current_dir(&driver_src_path).
-                         env("CFLAGS", "-fPIC").
-                         env("BSON_CFLAGS", "-fPIC").
                          status().
                          unwrap().
                          success());
