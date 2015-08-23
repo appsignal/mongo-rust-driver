@@ -496,6 +496,13 @@ mod tests {
                 fields:      Some(fields),
                 read_prefs:  None
             };
+
+            // Query a couple of times to make sure the C driver keeps
+            // access to the fields bson object.
+            for _ in 0..5 {
+                collection.find(&query, Some(&options)).unwrap();
+            }
+
             let mut cursor = collection.find(&query, Some(&options)).unwrap();
             let next_document = cursor.next().unwrap().unwrap();
             assert!(next_document.contains_key("key_1"));
