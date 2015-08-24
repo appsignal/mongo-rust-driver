@@ -1,5 +1,6 @@
 #![feature(convert)]
 
+extern crate chrono;
 extern crate libc;
 extern crate mongo_c_driver_wrapper;
 extern crate bson;
@@ -10,6 +11,7 @@ use std::sync::{Once,ONCE_INIT};
 use mongo_c_driver_wrapper::bindings;
 
 pub mod bsonc;
+pub mod bson_new;
 pub mod bulk_operation;
 pub mod client;
 pub mod collection;
