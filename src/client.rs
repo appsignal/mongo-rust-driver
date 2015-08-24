@@ -1,6 +1,7 @@
 use std::fmt;
 use std::ffi::CString;
 use std::path::PathBuf;
+use std::mem;
 use std::ptr;
 
 use mongo_c_driver_wrapper::bindings;
@@ -147,7 +148,7 @@ impl SslOptions {
                 None    => ptr::null()
             },
             weak_cert_validation: weak_cert_validation as u8,
-            padding:              [ptr::null_mut(); 8]
+            padding:              unsafe { mem::uninitialized() }
         };
 
         SslOptions {
