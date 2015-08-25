@@ -133,7 +133,6 @@ impl<'a> Drop for Database<'a> {
 
 #[cfg(test)]
 mod tests {
-    use bson;
     use super::super::uri::Uri;
     use super::super::client::ClientPool;
 
@@ -144,8 +143,7 @@ mod tests {
         let client   = pool.pop();
         let database = client.get_database("rust_test");
 
-        let mut command = bson::Document::new();
-        command.insert("ping".to_string(), bson::Bson::I32(1));
+        let command = doc! { "ping" => 1 };
 
         let result = database.command(command, None).unwrap().next().unwrap().unwrap();
         assert!(result.contains_key("ok"));

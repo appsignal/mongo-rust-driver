@@ -122,12 +122,9 @@ impl Drop for Bsonc {
 
 #[cfg(test)]
 mod tests {
-    use bson;
-
     #[test]
     fn test_bsonc_from_and_as_document() {
-        let mut document = bson::Document::new();
-        document.insert("key".to_string(), bson::Bson::String("value".to_string()));
+        let document = doc! { "key" => "value" };
 
         let bsonc = super::Bsonc::from_document(&document).unwrap();
 

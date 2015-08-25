@@ -4,7 +4,7 @@ use std::borrow::Cow;
 
 use mongo_c_driver_wrapper::bindings;
 
-use bson::{Bson,Document};
+use bson::Document;
 
 use super::Result;
 use super::CommandAndFindOptions;
@@ -378,12 +378,10 @@ impl<'a> Collection<'a> {
         find_options: Option<CommandAndFindOptions>,
         tail_options: Option<TailOptions>
     ) -> TailingCursor<'a> {
-        let mut query_with_options = Document::new();
-        query_with_options.insert(
-            "$query".to_string(),
-            Bson::Document(query)
-        );
-        query_with_options.insert("$natural".to_string(), Bson::I32(1));
+        let query_with_options = doc! {
+            "$query" => query,
+            "$natural" => 1
+        };
 
         TailingCursor::new(
             self,
@@ -417,8 +415,7 @@ mod tests {
         let client   = pool.pop();
         let collection = client.get_collection("rust_driver_test", "items");
 
-        let mut command = bson::Document::new();
-        command.insert("ping".to_string(), bson::Bson::I32(1));
+        let command = doc! { "ping" => 1 };
 
         let result = collection.command(command, None).unwrap().next().unwrap().unwrap();
         assert!(result.contains_key("ok"));
@@ -434,16 +431,18 @@ mod tests {
 
         assert_eq!("items", collection.get_name().to_mut());
 
-        let mut document = bson::Document::new();
-        document.insert("key_1".to_string(), bson::Bson::String("Value 1".to_string()));
-        document.insert("key_2".to_string(), bson::Bson::String("Value 2".to_string()));
+        let document = doc! {
+            "key_1" => "Value 1",
+            "key_2" => "Value 2"
+        };
         assert!(collection.insert(&document, None).is_ok());
 
-        let mut second_document = bson::Document::new();
-        second_document.insert("key_1".to_string(), bson::Bson::String("Value 3".to_string()));
+        let second_document = doc! {
+            "key_1" => "Value 3"
+        };
         assert!(collection.insert(&second_document, None).is_ok());
 
-        let query = bson::Document::new();
+        let query = doc!{};
 
         // Count the documents in the collection
         assert_eq!(2, collection.count(&query, None).unwrap());
@@ -486,14 +485,12 @@ mod tests {
 
         // Find the document with fields set
         {
-            let mut fields = bson::Document::new();
-            fields.insert("key_1".to_string(), bson::Bson::Boolean(true));
             let options = super::super::CommandAndFindOptions {
                 query_flags: flags::Flags::new(),
                 skip:        0,
                 limit:       0,
                 batch_size:  0,
-                fields:      Some(fields),
+                fields:      Some(doc! { "key_1" => true }),
                 read_prefs:  None
             };
 
@@ -520,7 +517,7 @@ mod tests {
         let pool       = ClientPool::new(uri, None);
         let client     = pool.pop();
         let collection = client.get_collection("rust_driver_test", "items");
-        let document   = bson::Document::new();
+        let document   = doc! {};
 
         let result = collection.insert(&document, None);
         assert!(result.is_err());

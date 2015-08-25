@@ -2,6 +2,7 @@
 
 extern crate libc;
 extern crate mongo_c_driver_wrapper;
+#[macro_use]
 extern crate bson;
 
 use std::result;

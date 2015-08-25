@@ -179,9 +179,7 @@ impl<'a> Iterator for TailingCursor<'a> {
                     // Add the last seen id to the query if it's present.
                     match self.last_seen_id.take() {
                         Some(id) => {
-                            let mut gt_id = Document::new();
-                            gt_id.insert("$gt".to_string(), Bson::ObjectId(id));
-                            self.query.insert("_id".to_string(), Bson::Document(gt_id));
+                            self.query.insert("_id".to_string(), Bson::Document(doc! { "$gt" => id }));
                         },
                         None => ()
                     };
@@ -245,15 +243,14 @@ mod tests {
         let client     = pool.pop();
         let mut collection = client.get_collection("rust_driver_test", "cursor_items");
 
-        let mut document = bson::Document::new();
-        document.insert("key".to_string(), bson::Bson::String("value".to_string()));
+        let document = doc! { "key" => "value" };
 
         collection.drop().unwrap_or(());
         for _ in 0..10 {
             assert!(collection.insert(&document, None).is_ok());
         }
 
-        let query  = bson::Document::new();
+        let query  = doc! {};
         let cursor = collection.find(&query, None).unwrap();
 
         assert!(cursor.is_alive());
@@ -275,14 +272,15 @@ mod tests {
         database.get_collection("capped").drop().unwrap_or(());
         database.get_collection("not_capped").drop().unwrap_or(());
 
-        let mut options = bson::Document::new();
-        options.insert("capped".to_string(), bson::Bson::Boolean(true));
-        options.insert("size".to_string(), bson::Bson::I32(100000));
+        let options = doc! {
+            "capped" => true,
+            "size" => 100000
+        };
         let capped_collection = database.create_collection("capped", Some(&options)).unwrap();
         let normal_collection = database.create_collection("not_capped", None).unwrap();
 
         // Try to tail on a normal collection
-        let failing_cursor = normal_collection.tail(bson::Document::new(), None, None);
+        let failing_cursor = normal_collection.tail(doc!{}, None, None);
         let failing_result = failing_cursor.into_iter().next().unwrap();
         assert!(failing_result.is_err());
         assert_eq!(
@@ -290,8 +288,7 @@ mod tests {
             format!("{:?}", failing_result.err().unwrap())
         );
 
-        let mut document = bson::Document::new();
-        document.insert("key_1".to_string(), bson::Bson::String("Value 1".to_string()));
+        let document = doc! { "key_1" => "Value 1" };
         // Insert a first document into the collection
         capped_collection.insert(&document, None).unwrap();
 
@@ -300,7 +297,7 @@ mod tests {
         let guard = thread::spawn(move || {
             let client     = cloned_pool.pop();
             let collection = client.get_collection("rust_test", "capped");
-            let cursor = collection.tail(bson::Document::new(), None, None);
+            let cursor = collection.tail(doc!{}, None, None);
             let mut counter = 0usize;
             for result in cursor.into_iter() {
                 assert!(result.is_ok());

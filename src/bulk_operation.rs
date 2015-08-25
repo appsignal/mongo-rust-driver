@@ -232,9 +232,10 @@ mod tests {
         {
             let bulk_operation = collection.create_bulk_operation(None);
 
-            let mut document = bson::Document::new();
-            document.insert("key_1".to_string(), bson::Bson::String("Value 1".to_string()));
-            document.insert("key_2".to_string(), bson::Bson::String("Value 2".to_string()));
+            let document = doc! {
+                "key_1" => "Value 1",
+                "key_2" => "Value 2"
+            };
             for _ in 0..5 {
                 bulk_operation.insert(&document).unwrap();
             }
@@ -246,15 +247,14 @@ mod tests {
                 result.ok().unwrap().get("nInserted").unwrap().to_json(),
                 bson::Bson::I32(5).to_json()
             );
-            assert_eq!(5, collection.count(&bson::Document::new(), None).unwrap());
+            assert_eq!(5, collection.count(&doc!{}, None).unwrap());
         }
 
-        let query = bson::Document::new();
+        let query = doc!{};
 
-        let mut update_document = bson::Document::new();
-        let mut set = bson::Document::new();
-        set.insert("key_1".to_string(), bson::Bson::String("Value update".to_string()));
-        update_document.insert("$set".to_string(), bson::Bson::Document(set));
+        let update_document = doc! {
+            "$set" => {"key_1" => "Value update"}
+        };
 
         // Update one
         {
@@ -274,7 +274,7 @@ mod tests {
                 bson::Bson::I32(1).to_json()
             );
 
-            let first_document = collection.find(&bson::Document::new(), None).unwrap().next().unwrap().unwrap();
+            let first_document = collection.find(&doc!{}, None).unwrap().next().unwrap().unwrap();
             assert_eq!(
                 first_document.get("key_1").unwrap().to_json(),
                 bson::Bson::String("Value update".to_string()).to_json()
@@ -301,8 +301,8 @@ mod tests {
                 bson::Bson::I32(4).to_json()
             );
 
-            collection.find(&bson::Document::new(), None).unwrap().next().unwrap().unwrap();
-            let second_document = collection.find(&bson::Document::new(), None).unwrap().next().unwrap().unwrap();
+            collection.find(&doc!{}, None).unwrap().next().unwrap().unwrap();
+            let second_document = collection.find(&doc!{}, None).unwrap().next().unwrap().unwrap();
             assert_eq!(
                 second_document.get("key_1").unwrap().to_json(),
                 bson::Bson::String("Value update".to_string()).to_json()
@@ -313,8 +313,7 @@ mod tests {
 
         // Replace one
         {
-            let mut replace_document = bson::Document::new();
-            replace_document.insert("key_1".to_string(), bson::Bson::String("Value replace".to_string()));
+            let replace_document = doc! { "key_1" => "Value replace" };
 
             let bulk_operation = collection.create_bulk_operation(None);
             bulk_operation.replace_one(
@@ -331,7 +330,7 @@ mod tests {
                 bson::Bson::I32(1).to_json()
             );
 
-            let first_document = collection.find(&bson::Document::new(), None).unwrap().next().unwrap().unwrap();
+            let first_document = collection.find(&doc!{}, None).unwrap().next().unwrap().unwrap();
             assert_eq!(
                 first_document.get("key_1").unwrap().to_json(),
                 bson::Bson::String("Value replace".to_string()).to_json()
