@@ -3,6 +3,8 @@ use std::ffi::CString;
 use std::path::PathBuf;
 use std::mem;
 use std::ptr;
+use std::io;
+use std::fs::File;
 
 use mongo_c_driver_wrapper::bindings;
 
@@ -125,10 +127,13 @@ impl SslOptions {
         ca_dir:               Option<PathBuf>,
         crl_file:             Option<PathBuf>,
         weak_cert_validation: bool
-    ) -> SslOptions {
+    ) -> io::Result<SslOptions> {
         let ssl_options = bindings::mongoc_ssl_opt_t {
             pem_file: match pem_file {
-                Some(ref f) => Self::path_ptr(f),
+                Some(ref f) => {
+                    try!(File::open(f.as_path()));
+                    Self::path_ptr(f)
+                },
                 None    => ptr::null()
             },
             pem_pwd: match pem_password {
@@ -136,22 +141,31 @@ impl SslOptions {
                 None => ptr::null()
             },
             ca_file: match ca_file {
-                Some(ref f) => Self::path_ptr(f),
+                Some(ref f) => {
+                    try!(File::open(f.as_path()));
+                    Self::path_ptr(f)
+                },
                 None    => ptr::null()
             },
             ca_dir: match ca_dir {
-                Some(ref f) => Self::path_ptr(f),
+                Some(ref f) => {
+                    try!(File::open(f.as_path()));
+                    Self::path_ptr(f)
+                },
                 None    => ptr::null()
             },
             crl_file: match crl_file {
-                Some(ref f) => Self::path_ptr(f),
+                Some(ref f) => {
+                    try!(File::open(f.as_path()));
+                    Self::path_ptr(f)
+                },
                 None    => ptr::null()
             },
             weak_cert_validation: weak_cert_validation as u8,
             padding:              unsafe { mem::uninitialized() }
         };
 
-        SslOptions {
+        Ok(SslOptions {
             inner:                ssl_options,
             pem_file:             pem_file,
             pem_password:         pem_password,
@@ -159,7 +173,7 @@ impl SslOptions {
             ca_dir:               ca_dir,
             crl_file:             crl_file,
             weak_cert_validation: weak_cert_validation
-        }
+        })
     }
 
     fn path_ptr(path: &PathBuf) -> *const i8 {
@@ -180,7 +194,7 @@ impl Clone for SslOptions {
             self.ca_dir.clone(),
             self.crl_file.clone(),
             self.weak_cert_validation
-        )
+        ).unwrap()
     }
 }
 
@@ -320,13 +334,26 @@ mod tests {
         // We currently have no way to test full operations
         let uri = Uri::new("mongodb://localhost:27017/");
         let ssl_options = SslOptions::new(
-            Some(PathBuf::from("/tmp/pem_file")),
+            Some(PathBuf::from("./README.md")),
             Some("password".to_string()),
-            Some(PathBuf::from("/tmp/ca_file")),
-            Some(PathBuf::from("/tmp/ca_dir")),
-            Some(PathBuf::from("/tmp/crl_file")),
+            Some(PathBuf::from("./README.md")),
+            Some(PathBuf::from("./README.md")),
+            Some(PathBuf::from("./README.md")),
             false
         );
-        ClientPool::new(uri, Some(ssl_options));
+        assert!(ssl_options.is_ok());
+        ClientPool::new(uri, Some(ssl_options.unwrap()));
+    }
+
+    #[test]
+    fn test_ssl_options_nonexistent_file() {
+        assert!(SslOptions::new(
+            Some(PathBuf::from("/tmp/aaaaa.aa")),
+            Some("password".to_string()),
+            Some(PathBuf::from("/tmp/aaaaa.aa")),
+            Some(PathBuf::from("/tmp/aaaaa.aa")),
+            Some(PathBuf::from("/tmp/aaaaa.aa")),
+            false
+        ).is_err());
     }
 }
