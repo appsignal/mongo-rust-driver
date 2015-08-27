@@ -2,6 +2,7 @@
 
 extern crate libc;
 extern crate mongo_c_driver_wrapper;
+
 #[macro_use]
 extern crate bson;
 
@@ -10,17 +11,18 @@ use std::sync::{Once,ONCE_INIT};
 
 use mongo_c_driver_wrapper::bindings;
 
-pub mod bsonc;
 pub mod bulk_operation;
 pub mod client;
 pub mod collection;
 pub mod cursor;
 pub mod database;
-pub mod error;
 pub mod flags;
 pub mod read_prefs;
 pub mod uri;
 pub mod write_concern;
+
+mod bsonc;
+mod error;
 
 pub use error::{MongoError,BsoncError,InvalidParamsError};
 
