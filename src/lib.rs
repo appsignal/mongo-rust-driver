@@ -58,6 +58,13 @@ impl CommandAndFindOptions {
             read_prefs:  None
         }
     }
+
+    fn fields_bsonc(&self) -> Option<bsonc::Bsonc> {
+        match self.fields {
+            Some(ref f) => Some(bsonc::Bsonc::from_document(f).unwrap()),
+            None => None
+        }
+    }
 }
 
 #[cfg(test)]

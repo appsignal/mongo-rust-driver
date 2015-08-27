@@ -45,8 +45,9 @@ impl<'a> Database<'a> {
 
         let default_options = CommandAndFindOptions::default();
         let options         = options.unwrap_or(&default_options);
+        let fields_bsonc    = options.fields_bsonc();
 
-        let inner = unsafe {
+        let cursor_ptr = unsafe {
             bindings::mongoc_database_command(
                 self.inner,
                 options.query_flags.flags(),
@@ -54,10 +55,8 @@ impl<'a> Database<'a> {
                 options.limit,
                 options.batch_size,
                 try!(Bsonc::from_document(&command)).inner(),
-                match options.fields {
-                    Some(ref f) => {
-                        try!(Bsonc::from_document(f)).inner()
-                    },
+                match fields_bsonc {
+                    Some(ref f) => f.inner(),
                     None => ptr::null()
                 },
                 match options.read_prefs {
@@ -67,11 +66,15 @@ impl<'a> Database<'a> {
             )
         };
 
-        if inner.is_null() {
+        if cursor_ptr.is_null() {
             return Err(InvalidParamsError.into())
         }
 
-        Ok(Cursor::new(cursor::CreatedBy::Database(self), inner))
+        Ok(Cursor::new(
+            cursor::CreatedBy::Database(self),
+            cursor_ptr,
+            fields_bsonc
+        ))
     }
 
     pub fn create_collection<S: Into<Vec<u8>>>(

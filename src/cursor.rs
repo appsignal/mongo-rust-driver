@@ -25,20 +25,25 @@ pub struct Cursor<'a> {
     _created_by:       CreatedBy<'a>,
     inner:             *mut bindings::mongoc_cursor_t,
     tailing:           bool,
-    tail_wait_time_ms: u32
+    tail_wait_time_ms: u32,
+    // Become owner of bsonc because the cursor needs it
+    // to be allocated for it's entire lifetime
+    _fields:           Option<bsonc::Bsonc>
 }
 
 impl<'a> Cursor<'a> {
     pub fn new(
         created_by: CreatedBy<'a>,
-        inner:      *mut bindings::mongoc_cursor_t
+        inner:      *mut bindings::mongoc_cursor_t,
+        fields:     Option<bsonc::Bsonc>
     ) -> Cursor<'a> {
         assert!(!inner.is_null());
         Cursor {
             _created_by:       created_by,
             inner:             inner,
             tailing:           false,
-            tail_wait_time_ms: 0
+            tail_wait_time_ms: 0,
+            _fields:           fields
         }
     }
 
