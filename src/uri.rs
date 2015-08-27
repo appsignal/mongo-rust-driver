@@ -43,6 +43,19 @@ impl Uri {
         }
     }
 
+    pub fn get_database<'a>(&'a self) -> Option<Cow<'a, str>> {
+        assert!(!self.inner.is_null());
+        unsafe {
+            let ptr = bindings::mongoc_uri_get_database(self.inner);
+            if ptr.is_null() {
+                None
+            } else {
+                let cstr = CStr::from_ptr(ptr);
+                Some(String::from_utf8_lossy(cstr.to_bytes()))
+            }
+        }
+    }
+
     // TODO add various methods that are available on uri
 }
 
