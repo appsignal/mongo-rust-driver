@@ -7,7 +7,7 @@ use mongo_driver::flags;
 
 #[test]
 fn test_command() {
-    let uri      = Uri::new("mongodb://localhost:27017/");
+    let uri      = Uri::new("mongodb://localhost:27017/").unwrap();
     let pool     = ClientPool::new(uri, None);
     let client   = pool.pop();
     let collection = client.get_collection("rust_driver_test", "items");
@@ -20,7 +20,7 @@ fn test_command() {
 
 #[test]
 fn test_mutation_and_finding() {
-    let uri        = Uri::new("mongodb://localhost:27017/");
+    let uri        = Uri::new("mongodb://localhost:27017/").unwrap();
     let pool       = ClientPool::new(uri, None);
     let client     = pool.pop();
     let mut collection = client.get_collection("rust_driver_test", "items");
@@ -110,7 +110,7 @@ fn test_mutation_and_finding() {
 
 #[test]
 fn test_insert_failure() {
-    let uri        = Uri::new("mongodb://localhost:27018/"); // There should be no mongo server here
+    let uri        = Uri::new("mongodb://localhost:27018/").unwrap(); // There should be no mongo server here
     let pool       = ClientPool::new(uri, None);
     let client     = pool.pop();
     let collection = client.get_collection("rust_driver_test", "items");

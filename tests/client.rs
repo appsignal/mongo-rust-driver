@@ -6,7 +6,7 @@ use mongo_driver::client::{ClientPool,SslOptions};
 
 #[test]
 fn test_new_pool_and_pop_client() {
-    let uri = Uri::new("mongodb://localhost:27017/");
+    let uri = Uri::new("mongodb://localhost:27017/").unwrap();
     let pool = ClientPool::new(uri, None);
 
     // Pop a client and get a database and collection
@@ -22,7 +22,7 @@ fn test_new_pool_and_pop_client() {
 
 #[test]
 fn test_new_pool_and_pop_client_in_threads() {
-    let uri = Uri::new("mongodb://localhost:27017/");
+    let uri = Uri::new("mongodb://localhost:27017/").unwrap();
     let pool = ClientPool::new(uri, None);
 
     let pool1 = pool.clone();
@@ -43,7 +43,7 @@ fn test_new_pool_and_pop_client_in_threads() {
 
 #[test]
 fn test_get_server_status() {
-    let uri = Uri::new("mongodb://localhost:27017/");
+    let uri = Uri::new("mongodb://localhost:27017/").unwrap();
     let pool = ClientPool::new(uri, None);
     let client = pool.pop();
 
@@ -56,7 +56,7 @@ fn test_get_server_status() {
 #[test]
 fn test_new_pool_with_ssl_options() {
     // We currently have no way to test full operations
-    let uri = Uri::new("mongodb://localhost:27017/");
+    let uri = Uri::new("mongodb://localhost:27017/").unwrap();
     let ssl_options = SslOptions::new(
         Some(PathBuf::from("./README.md")),
         Some("password".to_string()),

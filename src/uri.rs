@@ -12,11 +12,19 @@ pub struct Uri {
 }
 
 impl Uri {
-    pub fn new<T: Into<Vec<u8>>>(uri_string: T) -> Uri {
+    /// Parses a string containing a MongoDB style URI connection string.
+    ///
+    /// Returns None if the uri is not in the correct format, there is no
+    /// further information available if this is not the case.
+    ///
+    /// See: http://api.mongodb.org/c/current/mongoc_uri_new.html
+    pub fn new<T: Into<Vec<u8>>>(uri_string: T) -> Option<Uri> {
         let uri_cstring = CString::new(uri_string).unwrap();
         let uri = unsafe { bindings::mongoc_uri_new(uri_cstring.as_ptr()) };
-        Uri {
-            inner: uri
+        if uri.is_null() {
+            None
+        } else {
+            Some(Uri { inner: uri })
         }
     }
 
@@ -46,7 +54,7 @@ impl fmt::Debug for Uri {
 
 impl Clone for Uri {
     fn clone(&self) -> Uri {
-        Uri::new(self.as_str().into_owned())
+        Uri::new(self.as_str().into_owned()).unwrap()
     }
 }
 
