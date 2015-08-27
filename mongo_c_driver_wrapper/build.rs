@@ -70,7 +70,12 @@ fn main() {
                          status().
                          unwrap().
                          success());
-        assert!(Command::new("make").arg("install").current_dir(&driver_src_path).status().unwrap().success());
+        assert!(Command::new("make").
+                         arg("install").
+                         current_dir(&driver_src_path).
+                         status().
+                         unwrap().
+                         success());
 
         // Generate bindings
         let bindings_rs_path = Path::new(&current_dir).join("src/bindings.rs");
