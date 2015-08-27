@@ -1,10 +1,7 @@
-use mongo_driver::WriteConcern;
+use mongo_driver::write_concern::WriteConcern;
 
-#[cfg(test)]
-mod tests {
-    #[test]
-    fn test_write_concern() {
-        let write_concern = WriteConcern::new();
-        assert!(!write_concern.inner().is_null());
-    }
+#[test]
+fn test_write_concern() {
+    let write_concern = WriteConcern::new();
+    assert!(!write_concern.inner().is_null());
 }

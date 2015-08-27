@@ -1,4 +1,4 @@
-use mongo_driver::ReadPrefs;
+use mongo_driver::read_prefs::ReadPrefs;
 
 #[test]
 fn test_read_prefs() {

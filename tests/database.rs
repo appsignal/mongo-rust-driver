@@ -3,7 +3,7 @@ use mongo_driver::client::ClientPool;
 
 #[test]
 fn test_command() {
-    let uri      = Uri::new("mongodb://localhost:27017/");
+    let uri      = Uri::new("mongodb://localhost:27017/").unwrap();
     let pool     = ClientPool::new(uri, None);
     let client   = pool.pop();
     let database = client.get_database("rust_test");
@@ -16,7 +16,7 @@ fn test_command() {
 
 #[test]
 fn test_get_collection_and_name() {
-    let uri      = Uri::new("mongodb://localhost:27017/");
+    let uri      = Uri::new("mongodb://localhost:27017/").unwrap();
     let pool     = ClientPool::new(uri, None);
     let client   = pool.pop();
     let database = client.get_database("rust_test");
@@ -29,7 +29,7 @@ fn test_get_collection_and_name() {
 
 #[test]
 fn test_create_collection() {
-    let uri      = Uri::new("mongodb://localhost:27017/");
+    let uri      = Uri::new("mongodb://localhost:27017/").unwrap();
     let pool     = ClientPool::new(uri, None);
     let client   = pool.pop();
     let database = client.get_database("rust_test");

@@ -5,7 +5,7 @@ use mongo_driver::client::ClientPool;
 
 #[test]
 fn test_execute_error() {
-    let uri            = Uri::new("mongodb://localhost:27017/");
+    let uri            = Uri::new("mongodb://localhost:27017/").unwrap();
     let pool           = ClientPool::new(uri, None);
     let client         = pool.pop();
     let collection     = client.get_collection("rust_driver_test", "bulk_operation_error");
@@ -20,7 +20,7 @@ fn test_execute_error() {
 
 #[test]
 fn test_insert_remove_replace_update() {
-    let uri            = Uri::new("mongodb://localhost:27017/");
+    let uri            = Uri::new("mongodb://localhost:27017/").unwrap();
     let pool           = ClientPool::new(uri, None);
     let client         = pool.pop();
     let mut collection = client.get_collection("rust_driver_test", "bulk_operation_insert");

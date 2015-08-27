@@ -8,7 +8,7 @@ use mongo_driver::Result;
 
 #[test]
 fn test_cursor() {
-    let uri        = Uri::new("mongodb://localhost:27017/");
+    let uri        = Uri::new("mongodb://localhost:27017/").unwrap();
     let pool       = ClientPool::new(uri, None);
     let client     = pool.pop();
     let mut collection = client.get_collection("rust_driver_test", "cursor_items");
@@ -23,8 +23,6 @@ fn test_cursor() {
     let query  = doc! {};
     let cursor = collection.find(&query, None).unwrap();
 
-    assert!(cursor.is_alive());
-
     let documents = cursor.into_iter().collect::<Vec<Result<bson::Document>>>();
 
     // See if we got 10 results and the iterator then stopped
@@ -35,7 +33,7 @@ fn test_cursor() {
 fn test_tailing_cursor() {
     // See: http://api.mongodb.org/c/1.1.8/cursors.html#tailable
 
-    let uri      = Uri::new("mongodb://localhost:27017/");
+    let uri      = Uri::new("mongodb://localhost:27017/").unwrap();
     let pool     = ClientPool::new(uri, None);
     let client   = pool.pop();
     let database = client.get_database("rust_test");
