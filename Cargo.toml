@@ -8,6 +8,9 @@ repository  = "https://github.com/thijsc/mongo-rust-driver"
 keywords    = ["mongodb", "database"]
 license     = "MIT"
 
+[[test]]
+name = "tests"
+
 [dependencies]
 libc = "*"
 

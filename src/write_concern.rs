@@ -25,12 +25,3 @@ impl Drop for WriteConcern {
         }
     }
 }
-
-#[cfg(test)]
-mod tests {
-    #[test]
-    fn test_write_concern() {
-        let write_concern = super::WriteConcern::new();
-        assert!(!write_concern.inner().is_null());
-    }
-}

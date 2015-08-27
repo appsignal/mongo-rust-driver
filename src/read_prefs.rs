@@ -53,12 +53,3 @@ impl Drop for ReadPrefs {
         }
     }
 }
-
-#[cfg(test)]
-mod tests {
-    #[test]
-    fn test_read_prefs() {
-        let read_prefs = super::ReadPrefs::default();
-        assert!(!read_prefs.inner().is_null());
-    }
-}
