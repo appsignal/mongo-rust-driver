@@ -204,7 +204,7 @@ pub struct Client<'a> {
 }
 
 impl<'a> Client<'a> {
-    pub fn get_collection<S: Into<Vec<u8>>>(&'a self, db: S, collection: S) -> Collection<'a> {
+    pub fn get_collection<DBT: Into<Vec<u8>>, CT: Into<Vec<u8>>>(&'a self, db: DBT, collection: CT) -> Collection<'a> {
         assert!(!self.inner.is_null());
         let coll = unsafe {
             let db_cstring         = CString::new(db).unwrap();

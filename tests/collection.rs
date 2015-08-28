@@ -23,6 +23,7 @@ fn test_mutation_and_finding() {
     let uri        = Uri::new("mongodb://localhost:27017/").unwrap();
     let pool       = ClientPool::new(uri, None);
     let client     = pool.pop();
+    let _ =  client.get_collection("rust_driver_test".to_string(), "items");
     let mut collection = client.get_collection("rust_driver_test", "items");
     collection.drop().unwrap_or(());
 
