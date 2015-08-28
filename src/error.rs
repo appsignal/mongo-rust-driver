@@ -3,7 +3,7 @@ use std::fmt;
 use std::borrow::Cow;
 use std::ffi::CStr;
 
-use bson::{DecoderError,EncoderError};
+use bson::{DecoderError,EncoderError,ValueAccessError};
 
 use mongo_c_driver_wrapper::bindings;
 
@@ -11,6 +11,7 @@ pub enum MongoError {
     Bsonc(BsoncError),
     Decoder(DecoderError),
     Encoder(EncoderError),
+    ValueAccessError(ValueAccessError),
     InvalidParams(InvalidParamsError)
 }
 
@@ -20,6 +21,7 @@ impl fmt::Display for MongoError {
             MongoError::Bsonc(ref err) => write!(f, "{}", err),
             MongoError::Encoder(ref err) => write!(f, "{}", err),
             MongoError::Decoder(ref err) => write!(f, "{}", err),
+            MongoError::ValueAccessError(ref err) => write!(f, "{}", err),
             MongoError::InvalidParams(ref err) => write!(f, "{}", err)
         }
     }
@@ -31,6 +33,7 @@ impl fmt::Debug for MongoError {
             MongoError::Bsonc(ref err) => write!(f, "MongoError ({:?})", err),
             MongoError::Decoder(ref err) => write!(f, "MongoError ({:?})", err),
             MongoError::Encoder(ref err) => write!(f, "MongoError ({:?})", err),
+            MongoError::ValueAccessError(ref err) => write!(f, "MongoError ({:?})", err),
             MongoError::InvalidParams(ref err) => write!(f, "MongoError ({:?})", err)
         }
     }
@@ -42,6 +45,7 @@ impl error::Error for MongoError {
             MongoError::Bsonc(ref err) => err.description(),
             MongoError::Decoder(ref err) => err.description(),
             MongoError::Encoder(ref err) => err.description(),
+            MongoError::ValueAccessError(ref err) => err.description(),
             MongoError::InvalidParams(ref err) => err.description()
         }
     }
@@ -51,6 +55,7 @@ impl error::Error for MongoError {
             MongoError::Bsonc(ref err) => Some(err),
             MongoError::Decoder(ref err) => Some(err),
             MongoError::Encoder(ref err) => Some(err),
+            MongoError::ValueAccessError(ref err) => Some(err),
             MongoError::InvalidParams(ref err) => Some(err)
         }
     }
@@ -65,6 +70,12 @@ impl From<DecoderError> for MongoError {
 impl From<EncoderError> for MongoError {
     fn from(error: EncoderError) -> MongoError {
         MongoError::Encoder(error)
+    }
+}
+
+impl From<ValueAccessError> for MongoError {
+    fn from(error: ValueAccessError) -> MongoError {
+        MongoError::ValueAccessError(error)
     }
 }
 
