@@ -7,8 +7,5 @@ authors = ["Thijs Cadier <thijs@appsignal.com>"]
 [dependencies]
 libc       = "*"
 
-[build-dependencies]
-pkg-config = "*"
-
 [build-dependencies.bindgen]
 git = "https://github.com/crabtw/rust-bindgen.git"

@@ -1,7 +1,6 @@
 #![feature(path_ext)]
 
 extern crate bindgen;
-extern crate pkg_config;
 
 use std::env;
 use std::fs::PathExt;
@@ -115,7 +114,8 @@ fn main() {
     println!("cargo:rustc-link-lib=static=bson-1.0");
     println!("cargo:rustc-link-lib=static=mongoc-1.0");
 
-    for link_path in pkg_config::find_library("openssl").unwrap().link_paths.iter(){
-        println!("cargo:rustc-link-search=framework={}", &link_path.display());
-    }
+    // Link openssl dynamically
+    // TODO see if we can make this compatible with openssl-sys
+    println!("cargo:rustc-link-lib=dylib=ssl");
+    println!("cargo:rustc-link-lib=dylib=crypto");
 }
