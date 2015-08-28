@@ -5,7 +5,7 @@ build   = "build.rs"
 authors = ["Thijs Cadier <thijs@appsignal.com>"]
 
 [dependencies]
-libc       = "*"
+libc = "*"
 
 [build-dependencies.bindgen]
 git = "https://github.com/crabtw/rust-bindgen.git"
