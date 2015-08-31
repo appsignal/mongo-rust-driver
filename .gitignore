@@ -1,4 +1,4 @@
 target
 Cargo.lock
-mongo_c_driver_wrapper/mongo-c-driver*
-mongo_c_driver_wrapper/src/bindings.rs
+mongoc-sys/mongo-c-driver*
+mongoc-sys/src/bindings.rs

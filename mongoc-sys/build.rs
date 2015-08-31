@@ -107,15 +107,7 @@ fn main() {
     }
 
     // Output to Cargo
-    println!("cargo:root={}", &out_dir);
-    println!("cargo:libdir={}/lib", &out_dir);
-    println!("cargo:include={}/include", &out_dir);
-    println!("cargo:rustc-link-search={}/lib", &out_dir);
+    println!("cargo:rustc-link-search=native={}/lib", &out_dir);
     println!("cargo:rustc-link-lib=static=bson-1.0");
     println!("cargo:rustc-link-lib=static=mongoc-1.0");
-
-    // Link openssl dynamically
-    // TODO see if we can make this compatible with openssl-sys
-    println!("cargo:rustc-link-lib=dylib=ssl");
-    println!("cargo:rustc-link-lib=dylib=crypto");
 }

@@ -7,7 +7,7 @@ use libc::types::common::c95::c_void;
 
 use super::BsoncError;
 
-use mongo_c_driver_wrapper::bindings;
+use mongoc::bindings;
 use bson;
 
 use super::Result;

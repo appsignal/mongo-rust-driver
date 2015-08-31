@@ -1,11 +1,13 @@
 [package]
-name    = "mongo_c_driver_wrapper"
+name    = "mongoc-sys"
 version = "1.1.10"
-build   = "build.rs"
 authors = ["Thijs Cadier <thijs@appsignal.com>"]
+build   = "build.rs"
+links   = "mongoc"
 
 [dependencies]
-libc = "*"
+libc        = "*"
+openssl-sys = "*"
 
 [build-dependencies.bindgen]
 git = "https://github.com/crabtw/rust-bindgen.git"

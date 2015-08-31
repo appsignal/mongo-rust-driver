@@ -1,4 +1,4 @@
-use mongo_c_driver_wrapper::bindings;
+use mongoc::bindings;
 
 use std::collections::BTreeSet;
 

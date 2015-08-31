@@ -2,7 +2,7 @@ use std::borrow::Cow;
 use std::ffi::{CStr,CString};
 use std::fmt;
 
-use mongo_c_driver_wrapper::bindings;
+use mongoc::bindings;
 
 /// Abstraction on top of MongoDB connection URI format.
 /// See: http://api.mongodb.org/c/current/mongoc_uri_t.html

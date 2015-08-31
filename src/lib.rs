@@ -1,7 +1,7 @@
 #![feature(convert)]
 
 extern crate libc;
-extern crate mongo_c_driver_wrapper;
+extern crate mongoc_sys as mongoc;
 
 #[macro_use]
 extern crate bson;
@@ -9,7 +9,7 @@ extern crate bson;
 use std::result;
 use std::sync::{Once,ONCE_INIT};
 
-use mongo_c_driver_wrapper::bindings;
+use mongoc::bindings;
 
 pub mod bulk_operation;
 pub mod client;

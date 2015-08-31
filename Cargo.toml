@@ -17,6 +17,6 @@ libc = "*"
 [dependencies.bson]
 git = "https://github.com/zonyitoo/bson-rs.git"
 
-[dependencies.mongo_c_driver_wrapper]
-path    = "mongo_c_driver_wrapper"
+[dependencies.mongoc-sys]
+path    = "mongoc-sys"
 version = "1.1.10"
