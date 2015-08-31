@@ -2,7 +2,7 @@ use std::iter::Iterator;
 use std::ptr;
 use std::thread;
 
-use mongo_c_driver_wrapper::bindings;
+use mongoc::bindings;
 use bson::{Bson,Document,oid};
 
 use super::BsoncError;

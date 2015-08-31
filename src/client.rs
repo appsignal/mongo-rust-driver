@@ -6,7 +6,7 @@ use std::ptr;
 use std::io;
 use std::fs::File;
 
-use mongo_c_driver_wrapper::bindings;
+use mongoc::bindings;
 
 use bson::Document;
 

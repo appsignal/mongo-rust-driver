@@ -1,4 +1,4 @@
-use mongo_c_driver_wrapper::bindings;
+use mongoc::bindings;
 
 pub struct WriteConcern {
     inner: *mut bindings::mongoc_write_concern_t

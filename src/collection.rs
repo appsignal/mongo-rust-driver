@@ -2,7 +2,7 @@ use std::ptr;
 use std::ffi::CStr;
 use std::borrow::Cow;
 
-use mongo_c_driver_wrapper::bindings;
+use mongoc::bindings;
 
 use bson::Document;
 

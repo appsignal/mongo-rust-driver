@@ -1,8 +1,4 @@
-extern crate libc;
-extern crate mongo_c_driver_wrapper;
-extern crate bson;
-
-use mongo_c_driver_wrapper::bindings;
+use mongoc::bindings;
 use bson::Document;
 
 use super::BsoncError;
