@@ -13,6 +13,7 @@ name = "tests"
 
 [dependencies]
 libc = "*"
+log  = "*"
 
 [dependencies.bson]
 git = "https://github.com/zonyitoo/bson-rs.git"

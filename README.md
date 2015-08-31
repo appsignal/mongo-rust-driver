@@ -20,6 +20,12 @@ set this environment var for building to work (see https://github.com/crabtw/rus
 export DYLD_LIBRARY_PATH=/Library/Developer/CommandLineTools/usr/lib
 ```
 
+## Logging
+
+All internal logging by mongoc is redirected to the macros in the [log
+crate](http://doc.rust-lang.org/log/log/index.html). See the `log` docs
+to configure output in your application.
+
 ## Examples
 
 See the tests directory for examples of how to use the driver.

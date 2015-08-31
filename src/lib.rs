@@ -1,4 +1,5 @@
 #![feature(convert)]
+#![feature(cstr_to_str)]
 
 extern crate libc;
 extern crate mongoc_sys as mongoc;
@@ -6,6 +7,11 @@ extern crate mongoc_sys as mongoc;
 #[macro_use]
 extern crate bson;
 
+#[macro_use]
+extern crate log;
+
+use std::ffi::CStr;
+use std::ptr;
 use std::result;
 use std::sync::{Once,ONCE_INIT};
 
@@ -34,8 +40,39 @@ static MONGOC_INIT: Once = ONCE_INIT;
 /// anything else.
 fn init() {
     MONGOC_INIT.call_once(|| {
-        unsafe { bindings::mongoc_init(); }
+        unsafe {
+            // Init mongoc subsystem
+            bindings::mongoc_init();
+
+            // Set mongoc log handler
+            bindings::mongoc_log_set_handler(
+                Some(mongoc_log_handler),
+                ptr::null_mut()
+            );
+        }
     });
+}
+
+extern fn mongoc_log_handler(
+    log_level:  bindings::mongoc_log_level_t,
+    log_domain: *const ::libc::c_char,
+    message:    *const ::libc::c_char,
+    _:          *mut ::libc::c_void
+) {
+    let log_domain_str = unsafe { CStr::from_ptr(log_domain).to_string_lossy() };
+    let message_str = unsafe { CStr::from_ptr(message).to_string_lossy() };
+    let log_line = format!("mongoc: {} - {}", log_domain_str, message_str);
+
+    match log_level {
+        bindings::MONGOC_LOG_LEVEL_ERROR    => error!("{}", log_line),
+        bindings::MONGOC_LOG_LEVEL_CRITICAL => error!("{}", log_line),
+        bindings::MONGOC_LOG_LEVEL_WARNING  => warn!("{}", log_line),
+        bindings::MONGOC_LOG_LEVEL_MESSAGE  => info!("{}", log_line),
+        bindings::MONGOC_LOG_LEVEL_INFO     => info!("{}", log_line),
+        bindings::MONGOC_LOG_LEVEL_DEBUG    => debug!("{}", log_line),
+        bindings::MONGOC_LOG_LEVEL_TRACE    => trace!("{}", log_line),
+        _ => panic!("Unknown mongoc log level")
+    }
 }
 
 pub struct CommandAndFindOptions {
