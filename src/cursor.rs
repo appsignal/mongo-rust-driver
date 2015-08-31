@@ -184,7 +184,7 @@ impl<'a> Iterator for TailingCursor<'a> {
                     // Add the last seen id to the query if it's present.
                     match self.last_seen_id.take() {
                         Some(id) => {
-                            self.query.insert("_id".to_string(), Bson::Document(doc! { "$gt" => id }));
+                            self.query.insert_bson("_id".to_string(), Bson::Document(doc!{ "$gt" => id }));
                         },
                         None => ()
                     };
