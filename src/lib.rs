@@ -59,6 +59,17 @@ impl CommandAndFindOptions {
         }
     }
 
+    pub fn with_fields(fields: bson::Document) -> CommandAndFindOptions {
+        CommandAndFindOptions {
+            query_flags: flags::Flags::new(),
+            skip:        0,
+            limit:       0,
+            batch_size:  0,
+            fields:      Some(fields),
+            read_prefs:  None
+        }
+    }
+
     fn fields_bsonc(&self) -> Option<bsonc::Bsonc> {
         match self.fields {
             Some(ref f) => Some(bsonc::Bsonc::from_document(f).unwrap()),
