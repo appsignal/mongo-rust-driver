@@ -51,6 +51,7 @@ fn main() {
         command.arg("--with-libbson=bundled");
         command.arg("--with-pic=yes");
         command.arg(format!("--prefix={}", &out_dir));
+        command.env("CFLAGS", "-DMONGOC_TRACE");
         command.current_dir(&driver_src_path);
 
         // Enable debug symbols if configured for this profile
@@ -66,6 +67,7 @@ fn main() {
         assert!(command.status().unwrap().success());
         assert!(Command::new("make").
                          current_dir(&driver_src_path).
+                         env("CFLAGS", "-DMONGOC_TRACE").
                          status().
                          unwrap().
                          success());
