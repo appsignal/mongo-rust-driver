@@ -133,7 +133,7 @@ fn test_insert_failure() {
     let result = collection.insert(&document, None);
     assert!(result.is_err());
     assert_eq!(
-        "MongoError (BsoncError: Failed to connect to target host: localhost:27018)",
+        "MongoError (BsoncError: Stream/StreamConnect - Failed to connect to target host: localhost:27018)",
         format!("{:?}", result.err().unwrap())
     );
 }

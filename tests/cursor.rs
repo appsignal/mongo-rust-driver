@@ -52,7 +52,7 @@ fn test_tailing_cursor() {
     let failing_result = failing_cursor.into_iter().next().unwrap();
     assert!(failing_result.is_err());
     assert_eq!(
-        "MongoError (BsoncError: Unable to execute query: error processing query: ns=rust_test.not_capped limit=0 skip=0\nTree: $and\nSort: {}\nProj: {}\n tailable cursor requested on non capped collection)",
+        "MongoError (BsoncError: Query/Unknown - Unable to execute query: error processing query: ns=rust_test.not_capped limit=0 skip=0\nTree: $and\nSort: {}\nProj: {}\n tailable cursor requested on non capped collection)",
         format!("{:?}", failing_result.err().unwrap())
     );
 

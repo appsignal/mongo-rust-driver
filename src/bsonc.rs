@@ -147,6 +147,6 @@ mod tests {
         assert!(bsonc_result.is_err());
 
         let error_message = format!("{:?}", bsonc_result.err().unwrap());
-        assert!(error_message.starts_with("MongoError (BsoncError: parse error: premature EOF"));
+        assert!(error_message.starts_with("MongoError (BsoncError: Client/StreamInvalidType - parse error: premature EOF"));
     }
 }

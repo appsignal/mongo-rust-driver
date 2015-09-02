@@ -226,7 +226,13 @@ impl BsoncError {
 
 impl fmt::Debug for BsoncError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "BsoncError: {}", &self.get_message())
+        write!(
+            f,
+            "BsoncError: {:?}/{:?} - {}",
+            &self.domain(),
+            &self.code(),
+            &self.get_message()
+        )
     }
 }
 
