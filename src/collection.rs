@@ -161,6 +161,47 @@ impl<'a> Collection<'a> {
         ))
     }
 
+    /// Simplified version of command that returns the first document
+    ///
+    /// See: http://api.mongodb.org/c/current/mongoc_database_command_simple.html
+    pub fn command_simple(
+        &'a self,
+        command: Document,
+        options: Option<&CommandAndFindOptions>
+    ) -> Result<Document> {
+        assert!(!self.inner.is_null());
+
+        let default_options = CommandAndFindOptions::default();
+        let options         = options.unwrap_or(&default_options);
+
+        // Bsonc to store the reply
+        let mut reply = Bsonc::new();
+        // Empty error that might be filled
+        let mut error = BsoncError::empty();
+
+        let success = unsafe {
+            bindings::mongoc_collection_command_simple(
+                self.inner,
+                try!(Bsonc::from_document(&command)).inner(),
+                match options.read_prefs {
+                    Some(ref prefs) => prefs.inner(),
+                    None => ptr::null()
+                },
+                reply.mut_inner(),
+                error.mut_inner()
+            )
+        };
+
+        if success == 1 {
+            match reply.as_document() {
+                Ok(document) => return Ok(document),
+                Err(error)   => return Err(error.into())
+            }
+        } else {
+            Err(error.into())
+        }
+    }
+
     pub fn count(
         &self,
         query:   &Document,

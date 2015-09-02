@@ -19,6 +19,19 @@ fn test_command() {
 }
 
 #[test]
+fn test_command_simple() {
+    let uri      = Uri::new("mongodb://localhost:27017/").unwrap();
+    let pool     = ClientPool::new(uri, None);
+    let client   = pool.pop();
+    let collection = client.get_collection("rust_driver_test", "items");
+
+    let command = doc! { "ping" => 1 };
+
+    let result = collection.command_simple(command, None).unwrap();
+    assert!(result.contains_key("ok"));
+}
+
+#[test]
 fn test_mutation_and_finding() {
     let uri        = Uri::new("mongodb://localhost:27017/").unwrap();
     let pool       = ClientPool::new(uri, None);

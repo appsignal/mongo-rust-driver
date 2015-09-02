@@ -15,6 +15,19 @@ fn test_command() {
 }
 
 #[test]
+fn test_command_simple() {
+    let uri      = Uri::new("mongodb://localhost:27017/").unwrap();
+    let pool     = ClientPool::new(uri, None);
+    let client   = pool.pop();
+    let database = client.get_database("rust_test");
+
+    let command = doc! { "ping" => 1 };
+
+    let result = database.command_simple(command, None).unwrap();
+    assert!(result.contains_key("ok"));
+}
+
+#[test]
 fn test_get_collection_and_name() {
     let uri      = Uri::new("mongodb://localhost:27017/").unwrap();
     let pool     = ClientPool::new(uri, None);
