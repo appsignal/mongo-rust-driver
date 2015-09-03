@@ -134,7 +134,7 @@ impl SslOptions {
                     try!(File::open(f.as_path()));
                     Self::path_ptr(f)
                 },
-                None    => ptr::null()
+                None => ptr::null()
             },
             pem_pwd: match pem_password {
                 Some(ref password) => CString::new(password.clone()).unwrap().as_ptr(),
@@ -145,24 +145,24 @@ impl SslOptions {
                     try!(File::open(f.as_path()));
                     Self::path_ptr(f)
                 },
-                None    => ptr::null()
+                None => ptr::null()
             },
             ca_dir: match ca_dir {
                 Some(ref f) => {
                     try!(File::open(f.as_path()));
                     Self::path_ptr(f)
                 },
-                None    => ptr::null()
+                None => ptr::null()
             },
             crl_file: match crl_file {
                 Some(ref f) => {
                     try!(File::open(f.as_path()));
                     Self::path_ptr(f)
                 },
-                None    => ptr::null()
+                None => ptr::null()
             },
             weak_cert_validation: weak_cert_validation as u8,
-            padding:              unsafe { mem::uninitialized() }
+            padding: unsafe { mem::uninitialized() }
         };
 
         Ok(SslOptions {
