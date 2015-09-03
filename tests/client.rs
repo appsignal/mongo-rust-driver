@@ -1,3 +1,4 @@
+use std::env;
 use std::path::PathBuf;
 use std::thread;
 
@@ -55,7 +56,6 @@ fn test_get_server_status() {
 
 #[test]
 fn test_new_pool_with_ssl_options() {
-    // We currently have no way to test full operations
     let uri = Uri::new("mongodb://localhost:27017/").unwrap();
     let ssl_options = SslOptions::new(
         Some(PathBuf::from("./README.md")),
@@ -79,4 +79,44 @@ fn test_ssl_options_nonexistent_file() {
         Some(PathBuf::from("/tmp/aaaaa.aa")),
         false
     ).is_err());
+}
+
+#[test]
+fn test_ssl_connection_success() {
+    // This is currently tested on a private replica set, will be skipped if env vars are not set.
+
+    let uri = Uri::new(match env::var("MONGO_RUST_DRIVER_SSL_URI") { Ok(v) => v, Err(_) => return }).unwrap();
+    let pem_file = PathBuf::from(match env::var("MONGO_RUST_DRIVER_SSL_PEM_FILE") { Ok(v) => v, Err(_) => return });
+    let ca_file = PathBuf::from(match env::var("MONGO_RUST_DRIVER_SSL_CA_FILE") { Ok(v) => v, Err(_) => return });
+
+    let ssl_options = SslOptions::new(
+        Some(pem_file),
+        None,
+        Some(ca_file),
+        None,
+        None,
+        false
+    ).unwrap();
+
+    let pool = ClientPool::new(uri, Some(ssl_options));
+    let client   = pool.pop();
+    let database = client.get_database("admin");
+
+    let result = database.command_simple(doc! { "ping" => 1 }, None).unwrap();
+    assert!(result.contains_key("ok"));
+}
+
+#[test]
+fn test_ssl_connection_failure() {
+    // This connection should fail since the private replica set uses certificate
+    // based auth that we're not setting. Test will be skipped if env var is not set.
+
+    let uri = Uri::new(match env::var("MONGO_RUST_DRIVER_SSL_URI") { Ok(v) => v, Err(_) => return }).unwrap();
+
+    let pool = ClientPool::new(uri, None);
+    let client   = pool.pop();
+    let database = client.get_database("admin");
+
+    let result = database.command_simple(doc! { "ping" => 1 }, None);
+    assert!(result.is_err());
 }

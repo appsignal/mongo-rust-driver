@@ -22,7 +22,10 @@ use super::read_prefs::ReadPrefs;
 // with this root bool, there must be a better way.
 pub struct ClientPool {
     root_instance: bool,
-    uri:           Uri,
+    // Uri and SslOptions need to be present for the
+    // lifetime of this pool.
+    uri:          Uri,
+    ssl_options:  Option<SslOptions>,
     inner:         *mut bindings::mongoc_client_pool_t
 }
 
@@ -39,7 +42,7 @@ impl ClientPool {
             pool_ptr
         };
         match ssl_options {
-            Some(options) => {
+            Some(ref options) => {
                 unsafe {
                     bindings::mongoc_client_pool_set_ssl_opts(
                         pool,
@@ -51,8 +54,9 @@ impl ClientPool {
         };
         ClientPool {
             root_instance: true,
-            uri:           uri, // Become owner of uri so it doesn't go out of scope
-            inner:         pool
+            uri:         uri,
+            ssl_options: ssl_options,
+            inner:       pool
         }
     }
 
@@ -93,6 +97,7 @@ impl Clone for ClientPool {
         ClientPool {
             root_instance: false,
             uri:           self.uri.clone(),
+            ssl_options:   self.ssl_options.clone(),
             inner:         self.inner.clone()
         }
     }
@@ -111,11 +116,18 @@ impl Drop for ClientPool {
 
 pub struct SslOptions {
     inner:                bindings::mongoc_ssl_opt_t,
-    pem_file:             Option<PathBuf>,
-    pem_password:         Option<String>,
-    ca_file:              Option<PathBuf>,
-    ca_dir:               Option<PathBuf>,
-    crl_file:             Option<PathBuf>,
+    // We need to store everything so both memory sticks around
+    // for the C driver and we can clone this struct.
+    pem_file:              Option<PathBuf>,
+    _pem_file_cstring:     Option<CString>,
+    pem_password:          Option<String>,
+    _pem_password_cstring: Option<CString>,
+    ca_file:               Option<PathBuf>,
+    _ca_file_cstring:      Option<CString>,
+    ca_dir:                Option<PathBuf>,
+    _ca_dir_cstring:       Option<CString>,
+    crl_file:              Option<PathBuf>,
+    _crl_file_cstring:     Option<CString>,
     weak_cert_validation: bool
 }
 
@@ -128,37 +140,31 @@ impl SslOptions {
         crl_file:             Option<PathBuf>,
         weak_cert_validation: bool
     ) -> io::Result<SslOptions> {
+        let pem_file_cstring     = try!(Self::cstring_from_path(&pem_file));
+        let pem_password_cstring = Self::cstring_from_string(&pem_password);
+        let ca_file_cstring      = try!(Self::cstring_from_path(&ca_file));
+        let ca_dir_cstring       = try!(Self::cstring_from_path(&ca_dir));
+        let crl_file_cstring     = try!(Self::cstring_from_path(&crl_file));
+
         let ssl_options = bindings::mongoc_ssl_opt_t {
-            pem_file: match pem_file {
-                Some(ref f) => {
-                    try!(File::open(f.as_path()));
-                    Self::path_ptr(f)
-                },
+            pem_file: match pem_file_cstring {
+                Some(ref f) => f.as_ptr(),
                 None => ptr::null()
             },
-            pem_pwd: match pem_password {
-                Some(ref password) => CString::new(password.clone()).unwrap().as_ptr(),
+            pem_pwd: match pem_password_cstring {
+                Some(ref password) => password.as_ptr(),
                 None => ptr::null()
             },
-            ca_file: match ca_file {
-                Some(ref f) => {
-                    try!(File::open(f.as_path()));
-                    Self::path_ptr(f)
-                },
+            ca_file: match ca_file_cstring {
+                Some(ref f) => f.as_ptr(),
                 None => ptr::null()
             },
-            ca_dir: match ca_dir {
-                Some(ref f) => {
-                    try!(File::open(f.as_path()));
-                    Self::path_ptr(f)
-                },
+            ca_dir: match ca_dir_cstring {
+                Some(ref f) => f.as_ptr(),
                 None => ptr::null()
             },
-            crl_file: match crl_file {
-                Some(ref f) => {
-                    try!(File::open(f.as_path()));
-                    Self::path_ptr(f)
-                },
+            crl_file: match crl_file_cstring {
+                Some(ref f) => f.as_ptr(),
                 None => ptr::null()
             },
             weak_cert_validation: weak_cert_validation as u8,
@@ -166,18 +172,36 @@ impl SslOptions {
         };
 
         Ok(SslOptions {
-            inner:                ssl_options,
-            pem_file:             pem_file,
-            pem_password:         pem_password,
-            ca_file:              ca_file,
-            ca_dir:               ca_dir,
-            crl_file:             crl_file,
-            weak_cert_validation: weak_cert_validation
+            inner:                 ssl_options,
+            pem_file:              pem_file,
+            _pem_file_cstring:     pem_file_cstring,
+            pem_password:          pem_password,
+            _pem_password_cstring: pem_password_cstring,
+            ca_file:               ca_file,
+            _ca_file_cstring:      ca_file_cstring,
+            ca_dir:                ca_dir,
+            _ca_dir_cstring:       ca_dir_cstring,
+            crl_file:              crl_file,
+            _crl_file_cstring:     crl_file_cstring,
+            weak_cert_validation:  weak_cert_validation
         })
     }
 
-    fn path_ptr(path: &PathBuf) -> *const i8 {
-        path.as_os_str().to_cstring().unwrap().as_ptr()
+    fn cstring_from_path(path: &Option<PathBuf>) -> io::Result<Option<CString>> {
+        match path {
+            &Some(ref p) => {
+                try!(File::open(p.as_path()));
+                Ok(Some(p.as_os_str().to_cstring().unwrap()))
+            },
+            &None => Ok(None)
+        }
+    }
+
+    fn cstring_from_string(path: &Option<String>) -> Option<CString> {
+        match path {
+            &Some(ref p) => Some(CString::new(p.clone()).unwrap()),
+            &None => None
+        }
     }
 
     fn inner(&self) -> *const bindings::mongoc_ssl_opt_t {
