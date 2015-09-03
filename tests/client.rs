@@ -81,13 +81,18 @@ fn test_ssl_options_nonexistent_file() {
     ).is_err());
 }
 
+// SSL tests below are currently tested on a private replica set, will be skipped if you set
+// the env var SKIP_SSL_CONNECTION_TESTS to true.
+
 #[test]
 fn test_ssl_connection_success() {
-    // This is currently tested on a private replica set, will be skipped if env vars are not set.
+    if env::var("SKIP_SSL_CONNECTION_TESTS") == Ok("true".to_string()) {
+        return
+    }
 
-    let uri = Uri::new(match env::var("MONGO_RUST_DRIVER_SSL_URI") { Ok(v) => v, Err(_) => return }).unwrap();
-    let pem_file = PathBuf::from(match env::var("MONGO_RUST_DRIVER_SSL_PEM_FILE") { Ok(v) => v, Err(_) => return });
-    let ca_file = PathBuf::from(match env::var("MONGO_RUST_DRIVER_SSL_CA_FILE") { Ok(v) => v, Err(_) => return });
+    let uri = Uri::new(env::var("MONGO_RUST_DRIVER_SSL_URI").unwrap()).unwrap();
+    let pem_file = PathBuf::from(env::var("MONGO_RUST_DRIVER_SSL_PEM_FILE").unwrap());
+    let ca_file = PathBuf::from(env::var("MONGO_RUST_DRIVER_SSL_CA_FILE").unwrap());
 
     let ssl_options = SslOptions::new(
         Some(pem_file),
@@ -108,10 +113,11 @@ fn test_ssl_connection_success() {
 
 #[test]
 fn test_ssl_connection_failure() {
-    // This connection should fail since the private replica set uses certificate
-    // based auth that we're not setting. Test will be skipped if env var is not set.
+    if env::var("SKIP_SSL_CONNECTION_TESTS") == Ok("true".to_string()) {
+        return
+    }
 
-    let uri = Uri::new(match env::var("MONGO_RUST_DRIVER_SSL_URI") { Ok(v) => v, Err(_) => return }).unwrap();
+    let uri = Uri::new(env::var("MONGO_RUST_DRIVER_SSL_URI").unwrap()).unwrap();
 
     let pool = ClientPool::new(uri, None);
     let client   = pool.pop();
