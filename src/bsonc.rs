@@ -1,11 +1,9 @@
-use std::ffi::{CStr,CString};
+use std::ffi::CStr;
 use std::ptr;
 use std::borrow::Cow;
 use std::fmt;
 use std::slice;
 use libc::types::common::c95::c_void;
-
-use super::BsoncError;
 
 use mongoc::bindings;
 use bson;
@@ -43,25 +41,6 @@ impl Bsonc {
         assert!(!inner.is_null());
 
         Ok(Bsonc{ inner: inner })
-    }
-
-    pub fn from_json<S: Into<Vec<u8>>>(json: S) -> Result<Bsonc> {
-        let json_cstring = CString::new(json).unwrap();
-        let mut error    = BsoncError::empty();
-
-        let inner = unsafe {
-            bindings::bson_new_from_json(
-                json_cstring.as_ptr() as *const u8,
-                json_cstring.as_bytes().len() as i64,
-                error.mut_inner()
-            )
-        };
-
-        if error.is_empty() {
-            Ok(Bsonc{ inner: inner })
-        } else {
-            Err(error.into())
-        }
     }
 
     pub fn as_document(&self) -> Result<bson::Document> {
@@ -125,7 +104,6 @@ mod tests {
     #[test]
     fn test_bsonc_from_and_as_document() {
         let document = doc! { "key" => "value" };
-
         let bsonc = super::Bsonc::from_document(&document).unwrap();
 
         let decoded = bsonc.as_document().unwrap();
@@ -134,19 +112,8 @@ mod tests {
 
     #[test]
     fn test_bsonc_from_and_as_json() {
-        let json = "{ \"key\" : \"value\" }";
-        let bsonc = super::Bsonc::from_json(json).unwrap();
-        assert_eq!(json.to_string(), bsonc.as_json().into_owned());
-    }
-
-    #[test]
-    fn test_invalid_json() {
-        let malformed_json = "{ \"key\" : \"val }";
-        let bsonc_result = super::Bsonc::from_json(malformed_json);
-
-        assert!(bsonc_result.is_err());
-
-        let error_message = format!("{:?}", bsonc_result.err().unwrap());
-        assert!(error_message.starts_with("MongoError (BsoncError: Client/StreamInvalidType - parse error: premature EOF"));
+        let document = doc! { "key" => "value" };
+        let bsonc = super::Bsonc::from_document(&document).unwrap();
+        assert_eq!("{ \"key\" : \"value\" }", bsonc.as_json());
     }
 }
