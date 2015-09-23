@@ -1,8 +1,9 @@
 extern crate mongo_driver;
-
+extern crate chrono;
 #[macro_use]
 extern crate bson;
 
+mod bson_encode_decode;
 mod bulk_operation;
 mod client;
 mod collection;
