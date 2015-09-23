@@ -3,6 +3,7 @@ use std::ffi::CStr;
 use std::borrow::Cow;
 
 use mongoc::bindings;
+use bsonc;
 
 use bson::Document;
 
@@ -41,6 +42,35 @@ impl BulkOperationOptions {
             write_concern: WriteConcern::new()
         }
     }
+}
+
+pub struct FindAndModifyOptions {
+    pub sort:   Option<Document>,
+    pub new:    bool,
+    pub fields: Option<Document>
+}
+
+impl FindAndModifyOptions {
+    pub fn default() -> FindAndModifyOptions {
+        FindAndModifyOptions {
+            sort:   None,
+            new:    false,
+            fields: None
+        }
+    }
+
+    fn fields_bsonc(&self) -> Option<bsonc::Bsonc> {
+        match self.fields {
+            Some(ref f) => Some(bsonc::Bsonc::from_document(f).unwrap()),
+            None => None
+        }
+    }
+}
+
+pub enum FindAndModifyOperation<'a> {
+    Update(&'a Document),
+    Upsert(&'a Document),
+    Remove
 }
 
 pub struct CountOptions {
@@ -314,6 +344,76 @@ impl<'a> Collection<'a> {
             cursor_ptr,
             fields_bsonc
         ))
+    }
+
+    // Update and return an object.
+    //
+    // This is a thin wrapper around the findAndModify command. Pass in
+    // an operation that either updates, upserts or removes.
+    pub fn find_and_modify(
+        &'a self,
+        query:     &Document,
+        operation: FindAndModifyOperation<'a>,
+        options:   Option<&FindAndModifyOptions>
+    ) -> Result<Document> {
+        assert!(!self.inner.is_null());
+
+        let default_options = FindAndModifyOptions::default();
+        let options         = options.unwrap_or(&default_options);
+        let fields_bsonc    = options.fields_bsonc();
+
+        // Bsonc to store the reply
+        let mut reply = Bsonc::new();
+        // Empty error that might be filled
+        let mut error = BsoncError::empty();
+
+        // Do these before the mongoc call to make sure we keep
+        // them around long enough.
+        let sort = match options.sort {
+            Some(ref doc) => {
+                try!(Bsonc::from_document(doc)).inner()
+            },
+            None => ptr::null()
+        };
+        let update = match operation {
+            FindAndModifyOperation::Update(ref doc) | FindAndModifyOperation::Upsert(ref doc) => {
+                try!(Bsonc::from_document(doc)).inner()
+            },
+            FindAndModifyOperation::Remove => ptr::null()
+        };
+
+        let success = unsafe {
+            bindings::mongoc_collection_find_and_modify(
+                self.inner,
+                try!(Bsonc::from_document(&query)).inner(),
+                sort,
+                update,
+                match fields_bsonc {
+                    Some(ref f) => f.inner(),
+                    None => ptr::null()
+                },
+                match operation {
+                    FindAndModifyOperation::Remove => true,
+                    _ => false
+                } as u8,
+                match operation {
+                    FindAndModifyOperation::Upsert(_) => true,
+                    _ => false
+                } as u8,
+                options.new as u8,
+                reply.mut_inner(),
+                error.mut_inner()
+            )
+        };
+
+        if success == 1 {
+            match reply.as_document() {
+                Ok(document) => return Ok(document),
+                Err(error)   => return Err(error.into())
+            }
+        } else {
+            Err(error.into())
+        }
     }
 
     pub fn get_name(&self) -> Cow<str> {

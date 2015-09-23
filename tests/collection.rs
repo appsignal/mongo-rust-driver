@@ -1,6 +1,7 @@
 use bson;
 
 use mongo_driver::CommandAndFindOptions;
+use mongo_driver::collection::FindAndModifyOperation;
 use mongo_driver::uri::Uri;
 use mongo_driver::client::ClientPool;
 use mongo_driver::flags;
@@ -119,6 +120,53 @@ fn test_mutation_and_finding() {
 
     // Drop collection
     collection.drop().unwrap();
+    assert_eq!(0, collection.count(&query, None).unwrap());
+}
+
+#[test]
+fn test_find_and_modify() {
+    let uri        = Uri::new("mongodb://localhost:27017/").unwrap();
+    let pool       = ClientPool::new(uri, None);
+    let client     = pool.pop();
+    let collection = client.get_collection("rust_driver_test", "find_and_modify");
+
+    // Upsert something, it should now exist
+    let query = doc! {
+        "key_1" => "Value 1"
+    };
+    let update = doc! {
+        "$set" => {"content" => 1}
+    };
+    let result = collection.find_and_modify(
+        &query,
+        FindAndModifyOperation::Upsert(&update),
+        None
+    );
+    assert!(result.is_ok());
+    assert_eq!(update.get("content"), result.unwrap().get("content"));
+    assert_eq!(1, collection.count(&query, None).unwrap());
+
+    // Update this record
+    let update2 = doc! {
+        "$set" => {"content" => 2}
+    };
+    let result = collection.find_and_modify(
+        &query,
+        FindAndModifyOperation::Update(&update2),
+        None
+    );
+    assert!(result.is_ok());
+    assert_eq!(1, collection.count(&query, None).unwrap());
+    let found_document = collection.find(&query, None).unwrap().next().unwrap().unwrap();
+    assert_eq!(update2.get("content"), found_document.get("content"));
+
+    // Remove it
+    let result = collection.find_and_modify(
+        &query,
+        FindAndModifyOperation::Remove,
+        None
+    );
+    assert!(result.is_ok());
     assert_eq!(0, collection.count(&query, None).unwrap());
 }
 
