@@ -1,7 +1,7 @@
 use bson;
 
 use mongo_driver::CommandAndFindOptions;
-use mongo_driver::collection::FindAndModifyOperation;
+use mongo_driver::collection::{CountOptions,FindAndModifyOperation};
 use mongo_driver::uri::Uri;
 use mongo_driver::client::ClientPool;
 use mongo_driver::flags;
@@ -58,6 +58,11 @@ fn test_mutation_and_finding() {
 
     // Count the documents in the collection
     assert_eq!(2, collection.count(&query, None).unwrap());
+
+    // Count with options set
+    let mut count_options = CountOptions::default();
+    count_options.opts = Some(doc!{});
+    assert_eq!(2, collection.count(&query, Some(&count_options)).unwrap());
 
     // Find the documents
     assert_eq!(
