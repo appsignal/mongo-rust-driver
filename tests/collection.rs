@@ -133,7 +133,8 @@ fn test_find_and_modify() {
     let uri        = Uri::new("mongodb://localhost:27017/").unwrap();
     let pool       = ClientPool::new(uri, None);
     let client     = pool.pop();
-    let collection = client.get_collection("rust_driver_test", "find_and_modify");
+    let mut collection = client.get_collection("rust_driver_test", "find_and_modify");
+    collection.drop().unwrap_or(());
 
     // Upsert something, it should now exist
     let query = doc! {
