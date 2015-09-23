@@ -369,25 +369,31 @@ impl<'a> Collection<'a> {
 
         // Do these before the mongoc call to make sure we keep
         // them around long enough.
-        let sort = match options.sort {
+        let sort_bsonc = match options.sort {
             Some(ref doc) => {
-                try!(Bsonc::from_document(doc)).inner()
+                Some(try!(Bsonc::from_document(doc)))
             },
-            None => ptr::null()
+            None => None
         };
-        let update = match operation {
+        let update_bsonc = match operation {
             FindAndModifyOperation::Update(ref doc) | FindAndModifyOperation::Upsert(ref doc) => {
-                try!(Bsonc::from_document(doc)).inner()
+                Some(try!(Bsonc::from_document(doc)))
             },
-            FindAndModifyOperation::Remove => ptr::null()
+            FindAndModifyOperation::Remove => None
         };
 
         let success = unsafe {
             bindings::mongoc_collection_find_and_modify(
                 self.inner,
                 try!(Bsonc::from_document(&query)).inner(),
-                sort,
-                update,
+                match sort_bsonc {
+                    Some(ref s) => s.inner(),
+                    None => ptr::null()
+                },
+                match update_bsonc {
+                    Some(ref u) => u.inner(),
+                    None => ptr::null()
+                },
                 match fields_bsonc {
                     Some(ref f) => f.inner(),
                     None => ptr::null()

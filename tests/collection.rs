@@ -140,7 +140,7 @@ fn test_find_and_modify() {
         "key_1" => "Value 1"
     };
     let update = doc! {
-        "$set" => {"content" => 1}
+        "$set" => {"content" => 1i32}
     };
     let result = collection.find_and_modify(
         &query,
@@ -148,12 +148,13 @@ fn test_find_and_modify() {
         None
     );
     assert!(result.is_ok());
-    assert_eq!(update.get("content"), result.unwrap().get("content"));
     assert_eq!(1, collection.count(&query, None).unwrap());
+    let found_document = collection.find(&query, None).unwrap().next().unwrap().unwrap();
+    assert_eq!(found_document.get_i32("content"), Ok(1));
 
     // Update this record
     let update2 = doc! {
-        "$set" => {"content" => 2}
+        "$set" => {"content" => 2i32}
     };
     let result = collection.find_and_modify(
         &query,
@@ -163,7 +164,7 @@ fn test_find_and_modify() {
     assert!(result.is_ok());
     assert_eq!(1, collection.count(&query, None).unwrap());
     let found_document = collection.find(&query, None).unwrap().next().unwrap().unwrap();
-    assert_eq!(update2.get("content"), found_document.get("content"));
+    assert_eq!(found_document.get_i32("content"), Ok(2));
 
     // Remove it
     let result = collection.find_and_modify(
