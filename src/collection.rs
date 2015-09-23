@@ -241,6 +241,10 @@ impl<'a> Collection<'a> {
 
         let default_options = CountOptions::default();
         let options         = options.unwrap_or(&default_options);
+        let opts_bsonc      =  match options.opts {
+            Some(ref o) => Some(try!(Bsonc::from_document(o))),
+            None => None
+        };
 
         let mut error = BsoncError::empty();
         let count = unsafe {
@@ -250,13 +254,13 @@ impl<'a> Collection<'a> {
                 try!(Bsonc::from_document(query)).inner(),
                 options.skip as i64,
                 options.limit as i64,
-                match options.opts {
-                    Some(ref o) => try!(Bsonc::from_document(o)).inner(),
-                    None        => ptr::null()
+                match opts_bsonc {
+                    Some(ref o) => o.inner(),
+                    None => ptr::null()
                 },
                 match options.read_prefs {
                     Some(ref prefs) => prefs.inner(),
-                    None            => ptr::null()
+                    None => ptr::null()
                 },
                 error.mut_inner()
             )

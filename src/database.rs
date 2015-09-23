@@ -127,13 +127,18 @@ impl<'a> Database<'a> {
 
         let mut error = BsoncError::empty();
         let name_cstring = CString::new(name).unwrap();
+        let options_bsonc = match options {
+            Some(o) => Some(try!(Bsonc::from_document(o))),
+            None => None
+        };
+
         let coll = unsafe {
             bindings::mongoc_database_create_collection(
                 self.inner,
                 name_cstring.as_ptr(),
-                match options {
-                    Some(o) => try!(Bsonc::from_document(o)).inner(),
-                    None    => ptr::null()
+                match options_bsonc {
+                    Some(ref o) => o.inner(),
+                    None => ptr::null()
                 },
                 error.mut_inner()
             )
