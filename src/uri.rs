@@ -59,6 +59,12 @@ impl Uri {
     // TODO add various methods that are available on uri
 }
 
+impl PartialEq for Uri {
+    fn eq(&self, other: &Uri) -> bool {
+        self.as_str() == other.as_str()
+    }
+}
+
 impl fmt::Debug for Uri {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "{}", self.as_str())

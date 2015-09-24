@@ -60,6 +60,11 @@ impl ClientPool {
         }
     }
 
+    /// Get a reference to this pool's Uri
+    pub fn get_uri(&self) -> &Uri {
+        &self.uri
+    }
+
     /// Retrieve a client from the client pool, possibly blocking until one is available.
     /// See: http://api.mongodb.org/c/current/mongoc_client_pool_pop.html
     pub fn pop(&self) -> Client {

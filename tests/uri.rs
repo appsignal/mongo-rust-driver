@@ -22,3 +22,13 @@ fn test_get_database() {
     let uri = Uri::new("mongodb://localhost:27017/db").unwrap();
     assert_eq!("db", uri.get_database().unwrap());
 }
+
+#[test]
+fn test_equality() {
+    let uri1 = Uri::new("mongodb://localhost:27017/").unwrap();
+    let uri2 = Uri::new("mongodb://localhost:27018/").unwrap();
+
+    assert_eq!(uri1, uri1.clone());
+    assert!(uri1 == uri1.clone());
+    assert!(uri1 != uri2);
+}

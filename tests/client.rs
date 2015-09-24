@@ -8,7 +8,8 @@ use mongo_driver::client::{ClientPool,SslOptions};
 #[test]
 fn test_new_pool_and_pop_client() {
     let uri = Uri::new("mongodb://localhost:27017/").unwrap();
-    let pool = ClientPool::new(uri, None);
+    let pool = ClientPool::new(uri.clone(), None);
+    assert_eq!(pool.get_uri(), &uri);
 
     // Pop a client and get a database and collection
     let client = pool.pop();
