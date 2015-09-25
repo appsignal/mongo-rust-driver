@@ -21,8 +21,10 @@ use super::write_concern::WriteConcern;
 use super::read_prefs::ReadPrefs;
 
 pub enum CreatedBy<'a> {
-    Client(&'a Client<'a>),
-    Database(&'a Database<'a>)
+    BorrowedClient(&'a Client<'a>),
+    OwnedClient(Client<'a>),
+    BorrowedDatabase(&'a Database<'a>),
+    OwnedDatabase(Database<'a>)
 }
 
 pub struct Collection<'a> {

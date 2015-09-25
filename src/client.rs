@@ -13,7 +13,9 @@ use bson::Document;
 use super::Result;
 use super::BsoncError;
 use super::bsonc::Bsonc;
-use super::collection::{Collection,CreatedBy};
+use super::collection;
+use super::collection::Collection;
+use super::database;
 use super::database::Database;
 use super::uri::Uri;
 use super::read_prefs::ReadPrefs;
@@ -233,30 +235,52 @@ pub struct Client<'a> {
 }
 
 impl<'a> Client<'a> {
+    /// Borrow a collection
     pub fn get_collection<DBT: Into<Vec<u8>>, CT: Into<Vec<u8>>>(&'a self, db: DBT, collection: CT) -> Collection<'a> {
         assert!(!self.inner.is_null());
-        let coll = unsafe {
-            let db_cstring         = CString::new(db).unwrap();
-            let collection_cstring = CString::new(collection).unwrap();
-            bindings::mongoc_client_get_collection(
-                self.inner,
-                db_cstring.as_ptr(),
-                collection_cstring.as_ptr()
-            )
-        };
-        Collection::new(CreatedBy::Client(self), coll)
+        let coll = unsafe { self.collection_ptr(db.into(), collection.into()) };
+        Collection::new(collection::CreatedBy::BorrowedClient(self), coll)
     }
 
+    /// Take a collection, client is owned by the collection so the collection can easily
+    /// be passed around
+    pub fn take_collection<DBT: Into<Vec<u8>>, CT: Into<Vec<u8>>>(self, db: DBT, collection: CT) -> Collection<'a> {
+        assert!(!self.inner.is_null());
+        let coll = unsafe { self.collection_ptr(db.into(), collection.into()) };
+        Collection::new(collection::CreatedBy::OwnedClient(self), coll)
+    }
+
+    unsafe fn collection_ptr(&self, db: Vec<u8>, collection: Vec<u8>) -> *mut bindings::mongoc_collection_t {
+        let db_cstring         = CString::new(db).unwrap();
+        let collection_cstring = CString::new(collection).unwrap();
+        bindings::mongoc_client_get_collection(
+            self.inner,
+            db_cstring.as_ptr(),
+            collection_cstring.as_ptr()
+        )
+    }
+
+    /// Borrow a database
     pub fn get_database<S: Into<Vec<u8>>>(&'a self, db: S) -> Database<'a> {
         assert!(!self.inner.is_null());
-        let coll = unsafe {
-            let db_cstring = CString::new(db).unwrap();
-            bindings::mongoc_client_get_database(
-                self.inner,
-                db_cstring.as_ptr()
-            )
-        };
-        Database::new(self, coll)
+        let coll = unsafe { self.database_ptr(db.into()) };
+        Database::new(database::CreatedBy::BorrowedClient(self), coll)
+    }
+
+    /// Take a database, client is owned by the database so the database can easily
+    /// be passed around
+    pub fn take_database<S: Into<Vec<u8>>>(self, db: S) -> Database<'a> {
+        assert!(!self.inner.is_null());
+        let coll = unsafe { self.database_ptr(db.into()) };
+        Database::new(database::CreatedBy::OwnedClient(self), coll)
+    }
+
+    unsafe fn database_ptr(&self, db: Vec<u8>) -> *mut bindings::mongoc_database_t {
+        let db_cstring = CString::new(db).unwrap();
+        bindings::mongoc_client_get_database(
+            self.inner,
+            db_cstring.as_ptr()
+        )
     }
 
     /// Queries the server for the current server status.

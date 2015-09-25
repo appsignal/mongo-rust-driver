@@ -6,7 +6,7 @@ use mongo_driver::uri::Uri;
 use mongo_driver::client::{ClientPool,SslOptions};
 
 #[test]
-fn test_new_pool_and_pop_client() {
+fn test_new_pool_pop_client_and_borrow_collection() {
     let uri = Uri::new("mongodb://localhost:27017/").unwrap();
     let pool = ClientPool::new(uri.clone(), None);
     assert_eq!(pool.get_uri(), &uri);
@@ -19,6 +19,32 @@ fn test_new_pool_and_pop_client() {
     assert_eq!("rust_test", database.get_name().to_mut());
 
     let collection = client.get_collection("rust_test", "items");
+    assert_eq!("items", collection.get_name().to_mut());
+}
+
+#[test]
+fn test_new_pool_pop_client_and_take_collection() {
+    let uri = Uri::new("mongodb://localhost:27017/").unwrap();
+    let pool = ClientPool::new(uri.clone(), None);
+    assert_eq!(pool.get_uri(), &uri);
+
+    // Pop a client and take collection
+    let client = pool.pop();
+    let collection = client.take_collection("rust_test", "items");
+    assert_eq!("items", collection.get_name().to_mut());
+}
+
+#[test]
+fn test_new_pool_pop_client_and_take_database_and_collection() {
+    let uri = Uri::new("mongodb://localhost:27017/").unwrap();
+    let pool = ClientPool::new(uri.clone(), None);
+    assert_eq!(pool.get_uri(), &uri);
+
+    // Pop a client and take database and collection
+    let client = pool.pop();
+    let database = client.take_database("rust_test");
+    assert_eq!("rust_test", database.get_name().to_mut());
+    let collection = database.take_collection("items");
     assert_eq!("items", collection.get_name().to_mut());
 }
 

@@ -16,20 +16,25 @@ use super::cursor;
 use super::cursor::Cursor;
 use flags::FlagsValue;
 
+pub enum CreatedBy<'a> {
+    BorrowedClient(&'a Client<'a>),
+    OwnedClient(Client<'a>)
+}
+
 pub struct Database<'a> {
-    _client: &'a Client<'a>,
+    _created_by: CreatedBy<'a>,
     inner:   *mut bindings::mongoc_database_t
 }
 
 impl<'a> Database<'a> {
     pub fn new(
-        client: &'a Client<'a>,
+        created_by: CreatedBy<'a>,
         inner: *mut bindings::mongoc_database_t
     ) -> Database<'a> {
         assert!(!inner.is_null());
         Database {
-            _client: client,
-            inner:   inner
+            _created_by: created_by,
+            inner: inner
         }
     }
 
@@ -145,22 +150,33 @@ impl<'a> Database<'a> {
         };
 
         if error.is_empty() {
-            Ok(Collection::new(collection::CreatedBy::Database(self), coll))
+            Ok(Collection::new(collection::CreatedBy::BorrowedDatabase(self), coll))
         } else {
             Err(error.into())
         }
     }
 
+    /// Borrow a collection
     pub fn get_collection<S: Into<Vec<u8>>>(&self, collection: S) -> Collection {
         assert!(!self.inner.is_null());
-        let coll = unsafe {
-            let collection_cstring = CString::new(collection).unwrap();
-            bindings::mongoc_database_get_collection(
-                self.inner,
-                collection_cstring.as_ptr()
-            )
-        };
-        Collection::new(collection::CreatedBy::Database(self), coll)
+        let coll = unsafe { self.collection_ptr(collection.into()) };
+        Collection::new(collection::CreatedBy::BorrowedDatabase(self), coll)
+    }
+
+    /// Take a collection, database is owned by the collection so the collection can easily
+    /// be passed around
+    pub fn take_collection<S: Into<Vec<u8>>>(self, collection: S) -> Collection<'a> {
+        assert!(!self.inner.is_null());
+        let coll = unsafe { self.collection_ptr(collection.into()) };
+        Collection::new(collection::CreatedBy::OwnedDatabase(self), coll)
+    }
+
+    unsafe fn collection_ptr(&self, collection: Vec<u8>) -> *mut bindings::mongoc_collection_t {
+        let collection_cstring = CString::new(collection).unwrap();
+        bindings::mongoc_database_get_collection(
+            self.inner,
+            collection_cstring.as_ptr()
+        )
     }
 
     pub fn get_name(&self) -> Cow<str> {
