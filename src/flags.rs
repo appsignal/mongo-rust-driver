@@ -94,3 +94,26 @@ impl FlagsValue for Flags<RemoveFlag> {
         }
     }
 }
+
+/// Flags for update operations
+/// See: http://api.mongodb.org/c/current/mongoc_update_flags_t.html
+#[derive(Eq,PartialEq,Ord,PartialOrd)]
+pub enum UpdateFlag {
+    Upsert,
+    MultiUpdate
+}
+
+impl FlagsValue for Flags<UpdateFlag> {
+    fn flags(&self) -> u32 {
+        if self.flags.is_empty() {
+            bindings::MONGOC_UPDATE_NONE
+        } else {
+            self.flags.iter().fold(0, { |flags, flag|
+                flags | match flag {
+                    &UpdateFlag::Upsert      => bindings::MONGOC_UPDATE_UPSERT,
+                    &UpdateFlag::MultiUpdate => bindings::MONGOC_UPDATE_MULTI_UPDATE
+                }
+            })
+        }
+    }
+}

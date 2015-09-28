@@ -16,7 +16,7 @@ use super::client::Client;
 use super::cursor;
 use super::cursor::{Cursor,TailingCursor};
 use super::database::Database;
-use super::flags::{Flags,FlagsValue,InsertFlag,QueryFlag,RemoveFlag};
+use super::flags::{Flags,FlagsValue,InsertFlag,QueryFlag,RemoveFlag,UpdateFlag};
 use super::write_concern::WriteConcern;
 use super::read_prefs::ReadPrefs;
 
@@ -118,6 +118,20 @@ impl RemoveOptions {
     pub fn default() -> RemoveOptions {
         RemoveOptions {
             remove_flags:  Flags::new(),
+            write_concern: WriteConcern::new()
+        }
+    }
+}
+
+pub struct UpdateOptions {
+    pub update_flags:  Flags<UpdateFlag>,
+    pub write_concern: WriteConcern
+}
+
+impl UpdateOptions {
+    pub fn default() -> UpdateOptions {
+        UpdateOptions {
+            update_flags:  Flags::new(),
             write_concern: WriteConcern::new()
         }
     }
@@ -507,6 +521,39 @@ impl<'a> Collection<'a> {
                 self.inner,
                 try!(Bsonc::from_document(&document)).inner(),
                 write_concern.inner(),
+                error.mut_inner()
+            )
+        };
+
+        if success == 1 {
+            Ok(())
+        } else {
+            Err(error.into())
+        }
+    }
+
+    /// This function shall update documents in collection that match selector.
+    ///
+    /// See: http://api.mongodb.org/c/current/mongoc_collection_update.html
+    pub fn update(
+        &self,
+        selector: &Document,
+        update:   &Document,
+        options:  Option<&UpdateOptions>
+    ) -> Result<()> {
+        assert!(!self.inner.is_null());
+
+        let default_options = UpdateOptions::default();
+        let options         = options.unwrap_or(&default_options);
+
+        let mut error = BsoncError::empty();
+        let success = unsafe {
+            bindings::mongoc_collection_update(
+                self.inner,
+                options.update_flags.flags(),
+                try!(Bsonc::from_document(&selector)).inner(),
+                try!(Bsonc::from_document(&update)).inner(),
+                options.write_concern.inner(),
                 error.mut_inner()
             )
         };

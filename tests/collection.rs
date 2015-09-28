@@ -69,21 +69,35 @@ fn test_mutation_and_finding() {
         collection.find(&document, None).unwrap().next().unwrap().unwrap().get("key_1").unwrap().to_json(),
         bson::Bson::String("Value 1".to_string()).to_json()
     );
-    let mut found_document = collection.find(&second_document, None).unwrap().next().unwrap().unwrap();
+    let found_document = collection.find(&second_document, None).unwrap().next().unwrap().unwrap();
     assert_eq!(
         found_document.get("key_1").unwrap().to_json(),
         bson::Bson::String("Value 3".to_string()).to_json()
     );
 
     // Update the second document
-    found_document.insert("key_1".to_string(), bson::Bson::String("Value 4".to_string()));
+    let update = doc!{"$set" => {"key_1" => "Value 4"}};
+    assert!(collection.update(&second_document, &update, None).is_ok());
+
+    // Reload and check value
+    let query_after_update = doc! {
+        "key_1" => "Value 4"
+    };
+    let mut found_document = collection.find(&query_after_update, None).unwrap().next().unwrap().unwrap();
+    assert_eq!(
+        found_document.get("key_1").unwrap().to_json(),
+        bson::Bson::String("Value 4".to_string()).to_json()
+    );
+
+    // Save the second document
+    found_document.insert("key_1".to_string(), bson::Bson::String("Value 5".to_string()));
     assert!(collection.save(&found_document, None).is_ok());
 
     // Reload and check value
     let found_document = collection.find(&found_document, None).unwrap().next().unwrap().unwrap();
     assert_eq!(
         found_document.get("key_1").unwrap().to_json(),
-        bson::Bson::String("Value 4".to_string()).to_json()
+        bson::Bson::String("Value 5".to_string()).to_json()
     );
 
     // Remove one

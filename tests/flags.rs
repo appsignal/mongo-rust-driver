@@ -1,7 +1,7 @@
-use mongo_driver::flags::{Flags,FlagsValue,InsertFlag,RemoveFlag,QueryFlag};
+use mongo_driver::flags::*;
 
 #[test]
-pub fn test_insert_flags() {
+fn test_insert_flags() {
     let mut flags = Flags::new();
     assert_eq!(0, flags.flags());
 
@@ -14,7 +14,7 @@ pub fn test_insert_flags() {
 }
 
 #[test]
-pub fn test_query_flags() {
+fn test_query_flags() {
     let mut flags = Flags::new();
     assert_eq!(0, flags.flags());
 
@@ -27,11 +27,21 @@ pub fn test_query_flags() {
 }
 
 #[test]
-pub fn test_remove_flags() {
+fn test_remove_flags() {
     let mut flags = Flags::new();
     assert_eq!(0, flags.flags());
 
     flags.add(RemoveFlag::SingleRemove);
     flags.add(RemoveFlag::SingleRemove);
     assert_eq!(1, flags.flags());
+}
+
+#[test]
+fn test_update_flags() {
+    let mut flags = Flags::new();
+    assert_eq!(0, flags.flags());
+
+    flags.add(UpdateFlag::Upsert);
+    flags.add(UpdateFlag::MultiUpdate);
+    assert_eq!(3, flags.flags());
 }
