@@ -1,3 +1,4 @@
+use std::sync::Arc;
 use std::thread;
 
 use bson;
@@ -34,7 +35,7 @@ fn test_tailing_cursor() {
     // See: http://api.mongodb.org/c/1.1.8/cursors.html#tailable
 
     let uri      = Uri::new("mongodb://localhost:27017/").unwrap();
-    let pool     = ClientPool::new(uri, None);
+    let pool     = Arc::new(ClientPool::new(uri, None));
     let client   = pool.pop();
     let database = client.get_database("rust_test");
     database.get_collection("capped").drop().unwrap_or(());

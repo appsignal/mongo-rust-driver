@@ -1,5 +1,6 @@
 use std::env;
 use std::path::PathBuf;
+use std::sync::Arc;
 use std::thread;
 
 use mongo_driver::uri::Uri;
@@ -51,7 +52,7 @@ fn test_new_pool_pop_client_and_take_database_and_collection() {
 #[test]
 fn test_new_pool_and_pop_client_in_threads() {
     let uri = Uri::new("mongodb://localhost:27017/").unwrap();
-    let pool = ClientPool::new(uri, None);
+    let pool = Arc::new(ClientPool::new(uri, None));
 
     let pool1 = pool.clone();
     let guard1 = thread::spawn(move || {

@@ -20,14 +20,18 @@ use super::database::Database;
 use super::uri::Uri;
 use super::read_prefs::ReadPrefs;
 
-// TODO: We're using a sort of poor man's Arc here
-// with this root bool, there must be a better way.
+/// Client pool to a MongoDB cluster.
+///
+/// This client pool cannot be cloned, but it can be shared between threads by using an `Arc`.
+/// Use the pool to pop a client and do operations. The client will be automatically added
+/// back to the pool when it goes out of scope.
+///
+/// See: http://api.mongodb.org/c/current/mongoc_client_pool_t.html
 pub struct ClientPool {
-    root_instance: bool,
-    // Uri and SslOptions need to be present for the
-    // lifetime of this pool.
+    // Uri and SslOptions need to be present for the lifetime of this pool otherwise the C driver
+    // loses access to resources it needs.
     uri:          Uri,
-    ssl_options:  Option<SslOptions>,
+    _ssl_options: Option<SslOptions>,
     inner:         *mut bindings::mongoc_client_pool_t
 }
 
@@ -55,10 +59,9 @@ impl ClientPool {
             None => ()
         };
         ClientPool {
-            root_instance: true,
-            uri:         uri,
-            ssl_options: ssl_options,
-            inner:       pool
+            uri:          uri,
+            _ssl_options: ssl_options,
+            inner:        pool
         }
     }
 
@@ -82,6 +85,7 @@ impl ClientPool {
     /// See: http://api.mongodb.org/c/current/mongoc_client_pool_push.html
     unsafe fn push(&self, mongo_client: *mut bindings::mongoc_client_t) {
         assert!(!self.inner.is_null());
+        assert!(!mongo_client.is_null());
         bindings::mongoc_client_pool_push(
             self.inner,
             mongo_client
@@ -98,25 +102,11 @@ impl fmt::Debug for ClientPool {
     }
 }
 
-impl Clone for ClientPool {
-    fn clone(&self) -> ClientPool {
-        assert!(!self.inner.is_null());
-        ClientPool {
-            root_instance: false,
-            uri:           self.uri.clone(),
-            ssl_options:   self.ssl_options.clone(),
-            inner:         self.inner.clone()
-        }
-    }
-}
-
 impl Drop for ClientPool {
     fn drop(&mut self) {
-        if self.root_instance {
-            assert!(!self.inner.is_null());
-            unsafe {
-                bindings::mongoc_client_pool_destroy(self.inner);
-            }
+        assert!(!self.inner.is_null());
+        unsafe {
+            bindings::mongoc_client_pool_destroy(self.inner);
         }
     }
 }
