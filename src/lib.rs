@@ -1,5 +1,4 @@
 #![feature(convert)]
-#![feature(cstr_to_str)]
 
 extern crate libc;
 extern crate mongoc_sys as mongoc;
