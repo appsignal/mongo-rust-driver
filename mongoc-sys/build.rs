@@ -1,9 +1,6 @@
-#![feature(path_ext)]
-
 extern crate bindgen;
 
 use std::env;
-use std::fs::PathExt;
 use std::path::Path;
 use std::process::Command;
 

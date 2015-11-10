@@ -52,14 +52,14 @@ fn init() {
     });
 }
 
-extern fn mongoc_log_handler(
+unsafe extern "C" fn mongoc_log_handler(
     log_level:  bindings::mongoc_log_level_t,
     log_domain: *const ::libc::c_char,
     message:    *const ::libc::c_char,
     _:          *mut ::libc::c_void
 ) {
-    let log_domain_str = unsafe { CStr::from_ptr(log_domain).to_string_lossy() };
-    let message_str = unsafe { CStr::from_ptr(message).to_string_lossy() };
+    let log_domain_str = CStr::from_ptr(log_domain).to_string_lossy();
+    let message_str = CStr::from_ptr(message).to_string_lossy();
     let log_line = format!("mongoc: {} - {}", log_domain_str, message_str);
 
     match log_level {

@@ -3,7 +3,7 @@ use std::ptr;
 use std::borrow::Cow;
 use std::fmt;
 use std::slice;
-use libc::types::common::c95::c_void;
+use libc::c_void;
 
 use mongoc::bindings;
 use bson;
