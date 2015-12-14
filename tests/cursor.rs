@@ -1,5 +1,6 @@
 use std::sync::Arc;
 use std::thread;
+use std::time::Duration;
 
 use bson;
 
@@ -79,7 +80,7 @@ fn test_tailing_cursor() {
     });
 
     // Wait for the thread to boot up
-    thread::sleep_ms(250);
+    thread::sleep(Duration::from_millis(250));
 
     // Insert some more documents into the collection
     for _ in 0..25 {

@@ -1,6 +1,7 @@
 use std::ptr;
 use std::ffi::CStr;
 use std::borrow::Cow;
+use std::time::Duration;
 
 use mongoc::bindings;
 use bsonc;
@@ -138,14 +139,14 @@ impl UpdateOptions {
 }
 
 pub struct TailOptions {
-    pub wait_time_ms: u32,
-    pub max_retries:  u32
+    pub wait_duration: Duration,
+    pub max_retries:   u32
 }
 
 impl TailOptions {
     pub fn default() -> TailOptions {
         TailOptions {
-            wait_time_ms: 500,
+            wait_duration: Duration::from_millis(500),
             max_retries:  5
         }
     }

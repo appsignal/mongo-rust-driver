@@ -1,6 +1,7 @@
 use std::iter::Iterator;
 use std::ptr;
 use std::thread;
+use std::time::Duration;
 
 use mongoc::bindings;
 use bson::{Bson,Document,oid};
@@ -22,13 +23,13 @@ pub enum CreatedBy<'a> {
 }
 
 pub struct Cursor<'a> {
-    _created_by:       CreatedBy<'a>,
-    inner:             *mut bindings::mongoc_cursor_t,
-    tailing:           bool,
-    tail_wait_time_ms: u32,
+    _created_by:        CreatedBy<'a>,
+    inner:              *mut bindings::mongoc_cursor_t,
+    tailing:            bool,
+    tail_wait_duration: Duration,
     // Become owner of bsonc because the cursor needs it
     // to be allocated for it's entire lifetime
-    _fields:           Option<bsonc::Bsonc>
+    _fields:            Option<bsonc::Bsonc>
 }
 
 impl<'a> Cursor<'a> {
@@ -39,11 +40,11 @@ impl<'a> Cursor<'a> {
     ) -> Cursor<'a> {
         assert!(!inner.is_null());
         Cursor {
-            _created_by:       created_by,
-            inner:             inner,
-            tailing:           false,
-            tail_wait_time_ms: 0,
-            _fields:           fields
+            _created_by:        created_by,
+            inner:              inner,
+            tailing:            false,
+            tail_wait_duration: Duration::from_millis(0),
+            _fields:            fields
         }
     }
 
@@ -104,7 +105,7 @@ impl<'a> Iterator for Cursor<'a> {
                     if self.tailing && self.is_alive() {
                         // Since there was no error, this is a tailing cursor
                         // and the cursor is alive we'll wait before trying again.
-                        thread::sleep_ms(self.tail_wait_time_ms);
+                        thread::sleep(self.tail_wait_duration);
                         continue;
                     } else {
                         // No result, no error and cursor not tailing so we must
@@ -192,8 +193,8 @@ impl<'a> Iterator for TailingCursor<'a> {
                     // Set the cursor
                     self.cursor = match self.collection.find(&self.query, Some(&self.find_options)) {
                         Ok(mut c)  => {
-                            c.tailing           = true;
-                            c.tail_wait_time_ms = self.tail_options.wait_time_ms;
+                            c.tailing            = true;
+                            c.tail_wait_duration = self.tail_options.wait_duration;
                             Some(c)
                         },
                         Err(e) => return Some(Err(e.into()))
