@@ -1,5 +1,4 @@
 target
 Cargo.lock
 mongoc-sys/mongo-c-driver*
-mongoc-sys/src/bindings.rs
 ssl_env_vars

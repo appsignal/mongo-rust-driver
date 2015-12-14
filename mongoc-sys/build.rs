@@ -1,5 +1,3 @@
-extern crate bindgen;
-
 use std::env;
 use std::path::Path;
 use std::process::Command;
@@ -9,7 +7,6 @@ static VERSION: &'static str = "1.1.11"; // Should be the same as the version in
 fn main() {
     let out_dir_var = env::var("OUT_DIR").unwrap();
     let out_dir = format!("{}/{}", out_dir_var, VERSION);
-    let current_dir = env::var("CARGO_MANIFEST_DIR").unwrap();
     let driver_src_path = format!("mongo-c-driver-{}", VERSION);
 
     let libmongoc_path = Path::new(&out_dir).join("lib/libmongoc-1.0.a");
@@ -74,35 +71,6 @@ fn main() {
                          status().
                          unwrap().
                          success());
-
-        // Generate bindings
-        let bindings_rs_path = Path::new(&current_dir).join("src/bindings.rs");
-        let mongo_h_path     = Path::new(&current_dir).join(&driver_src_path).join("src/mongoc/mongoc.h");
-        let bson_path        = Path::new(&current_dir).join(&driver_src_path).join("src/libbson/src/bson");
-        let mongo_h_path_arg = mongo_h_path.to_str().unwrap();
-        let bson_path_arg    = bson_path.to_str().unwrap();
-
-        let mut builder = bindgen::builder();
-        builder.emit_builtins();
-        builder.header(mongo_h_path_arg);
-        builder.clang_arg("-I".to_owned());
-        builder.clang_arg(bson_path_arg);
-
-        // Add clang include dir if it's detected by bindgen.
-        if let Some(path) = bindgen::get_include_dir() {
-            builder.clang_arg("-I".to_owned());
-            builder.clang_arg(path);
-        }
-
-        // Add clang include dir from env var, use as a last resort
-        // if include cannot be detected normally.
-        if let Ok(path) = env::var("CLANG_INCLUDE_DIR") {
-            builder.clang_arg("-I".to_owned());
-            builder.clang_arg(path);
-        }
-
-        let binding = builder.generate().unwrap();
-        binding.write_to_file(&bindings_rs_path).unwrap();
     }
 
     // Output to Cargo

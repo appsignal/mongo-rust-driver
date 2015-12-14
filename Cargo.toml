@@ -19,7 +19,7 @@ log  = "*"
 git = "https://github.com/zonyitoo/bson-rs.git"
 
 [dependencies.mongoc-sys]
-path    = "mongoc-sys"
+path = "mongoc-sys"
 
 [dev-dependencies]
 chrono = "*"

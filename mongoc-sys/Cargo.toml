@@ -8,6 +8,3 @@ links   = "mongoc"
 [dependencies]
 libc        = "*"
 openssl-sys = "*"
-
-[build-dependencies.bindgen]
-git = "https://github.com/crabtw/rust-bindgen.git"
