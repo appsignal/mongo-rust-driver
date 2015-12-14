@@ -188,7 +188,7 @@ impl SslOptions {
         match path {
             &Some(ref p) => {
                 try!(File::open(p.as_path()));
-                Ok(Some(p.as_os_str().to_cstring().unwrap()))
+                Ok(Some(CString::new(p.to_string_lossy().into_owned()).unwrap()))
             },
             &None => Ok(None)
         }
