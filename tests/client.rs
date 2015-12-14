@@ -132,25 +132,9 @@ fn test_ssl_connection_success() {
     ).unwrap();
 
     let pool = ClientPool::new(uri, Some(ssl_options));
-    let client   = pool.pop();
+    let client = pool.pop();
     let database = client.get_database("admin");
 
-    let result = database.command_simple(doc! { "ping" => 1 }, None).unwrap();
+    let result = database.command_simple(doc!{"ping" => 1}, None).unwrap();
     assert!(result.contains_key("ok"));
-}
-
-#[test]
-fn test_ssl_connection_failure() {
-    if env::var("SKIP_SSL_CONNECTION_TESTS") == Ok("true".to_string()) {
-        return
-    }
-
-    let uri = Uri::new(env::var("MONGO_RUST_DRIVER_SSL_URI").unwrap()).unwrap();
-
-    let pool = ClientPool::new(uri, None);
-    let client   = pool.pop();
-    let database = client.get_database("admin");
-
-    let result = database.command_simple(doc! { "ping" => 1 }, None);
-    assert!(result.is_err());
 }
