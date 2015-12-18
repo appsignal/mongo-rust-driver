@@ -97,7 +97,7 @@ impl<'a> Iterator for Cursor<'a> {
             };
 
             // Fetch error that might have occurred while getting
-            // the next cursor.
+            // the next item.
             let error = self.error();
 
             if success == 0 {
