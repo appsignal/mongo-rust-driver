@@ -1,0 +1,9 @@
+language: rust
+rust:
+  - stable
+  - beta
+  - nightly
+services:
+  - mongodb
+env:
+  - SKIP_SSL_CONNECTION_TESTS=true
