@@ -12,12 +12,13 @@ license     = "MIT"
 name = "tests"
 
 [dependencies]
-libc = "*"
-log  = "*"
-bson = "*"
+libc = "> 0.2.0"
+log  = "> 0.3.0"
+bson = "> 0.1.0"
 
 [dependencies.mongoc-sys]
-path = "mongoc-sys"
+path    = "mongoc-sys"
+version = "1.3.0"
 
 [dev-dependencies]
 chrono = "*"

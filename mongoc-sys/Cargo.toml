@@ -1,10 +1,16 @@
 [package]
-name    = "mongoc-sys"
-version = "1.3.0"
-authors = ["Thijs Cadier <thijs@appsignal.com>"]
-build   = "build.rs"
-links   = "mongoc"
+name        = "mongoc-sys"
+version     = "1.3.0"
+description = "Sys package with installer and bindings for mongoc"
+authors     = ["Thijs Cadier <thijs@appsignal.com>"]
+build       = "build.rs"
+repository  = "https://github.com/thijsc/mongo-rust-driver"
+links       = "mongoc"
+license     = "MIT"
+exclude = [
+    "mongo-c-driver-*"
+]
 
 [dependencies]
-libc        = "*"
-openssl-sys = "*"
+libc        = "> 0.2.0"
+openssl-sys = "> 0.7.0"
