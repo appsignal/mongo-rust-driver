@@ -1,3 +1,5 @@
+use std::env;
+
 use bson;
 
 use mongo_driver::uri::Uri;
@@ -19,11 +21,28 @@ fn test_execute_error() {
 }
 
 #[test]
-fn test_insert_remove_replace_update() {
+fn test_basics() {
     let uri            = Uri::new("mongodb://localhost:27017/").unwrap();
     let pool           = ClientPool::new(uri, None);
     let client         = pool.pop();
-    let mut collection = client.get_collection("rust_driver_test", "bulk_operation_insert");
+    let collection     = client.get_collection("rust_driver_test", "bulk_operation_basics");
+    let bulk_operation = collection.create_bulk_operation(None);
+
+    let document = doc! {"key_1" => "Value 1"};
+    bulk_operation.insert(&document).unwrap();
+    assert!(bulk_operation.execute().is_ok());
+}
+
+#[test]
+fn test_insert_remove_replace_update_extended() {
+    if env::var("SKIP_EXTENDED_BULK_OPERATION_TESTS") == Ok("true".to_string()) {
+        return
+    }
+
+    let uri            = Uri::new("mongodb://localhost:27017/").unwrap();
+    let pool           = ClientPool::new(uri, None);
+    let client         = pool.pop();
+    let mut collection = client.get_collection("rust_driver_test", "bulk_operation_extended");
     collection.drop().unwrap_or(());
 
     // Insert 5 documents
