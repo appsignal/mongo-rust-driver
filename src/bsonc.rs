@@ -1,6 +1,5 @@
 use std::ffi::CStr;
 use std::ptr;
-use std::borrow::Cow;
 use std::fmt;
 use std::slice;
 use libc::c_void;
@@ -64,12 +63,12 @@ impl Bsonc {
         Ok(document)
     }
 
-    pub fn as_json(&self) -> Cow<str> {
+    pub fn as_json(&self) -> String {
         assert!(!self.inner.is_null());
         let json_ptr = unsafe { bindings::bson_as_json(self.inner, ptr::null_mut()) };
         assert!(!json_ptr.is_null());
         let json_cstr = unsafe { CStr::from_ptr(json_ptr) };
-        let out = String::from_utf8_lossy(json_cstr.to_bytes());
+        let out = String::from_utf8_lossy(json_cstr.to_bytes()).into_owned();
         unsafe { bindings::bson_free(json_ptr as *mut c_void); }
         out
     }
@@ -111,9 +110,9 @@ mod tests {
     }
 
     #[test]
-    fn test_bsonc_from_and_as_json() {
+    fn test_bsonc_as_json() {
         let document = doc! { "key" => "value" };
         let bsonc = super::Bsonc::from_document(&document).unwrap();
-        assert_eq!("{ \"key\" : \"value\" }", bsonc.as_json());
+        assert_eq!("{ \"key\" : \"value\" }".to_owned(), bsonc.as_json());
     }
 }
