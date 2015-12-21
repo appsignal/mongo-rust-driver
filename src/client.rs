@@ -165,7 +165,7 @@ impl SslOptions {
                 None => ptr::null()
             },
             weak_cert_validation: weak_cert_validation as u8,
-            padding: unsafe { mem::uninitialized() }
+            padding: unsafe { mem::zeroed() }
         };
 
         Ok(SslOptions {
