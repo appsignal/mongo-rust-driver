@@ -1,3 +1,25 @@
+//! This driver is a thin wrapper around the production-ready [Mongo C driver](https://github.com/mongodb/mongo-c-driver).
+//!
+//! It aims to provide a safe and ergonomic Rust interface which handles all the gnarly usage details of
+//! the C driver for you. We use Rust's type system to make sure that we can only use the
+//! underlying C driver in the recommended way specified in it's [documentation](http://api.mongodb.org/c/current/).
+//!
+//! To get started create a client pool wrapped in an `Arc` so we can share it between threads. Then pop a client from it
+//! you can use to perform operations:
+//!
+//! ```
+//! use std::sync::Arc;
+//! use mongo_driver::uri::Uri;
+//! use mongo_driver::client::ClientPool;
+//!
+//! let uri = Uri::new("mongodb://localhost:27017/").unwrap();
+//! let pool = Arc::new(ClientPool::new(uri.clone(), None));
+//! let client = pool.pop();
+//! client.get_server_status(None).unwrap();
+//! ```
+//!
+//! See the documentation for the various modules to find out how you can use the driver.
+
 extern crate libc;
 extern crate mongoc_sys as mongoc;
 
