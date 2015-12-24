@@ -219,6 +219,11 @@ impl Clone for SslOptions {
     }
 }
 
+/// Client that provides access to a MongoDB MongoDB node, replica-set, or sharded-cluster.
+///
+/// It maintains management of underlying sockets and routing to individual nodes based on
+/// `ReadPrefs` or `WriteConcern`. Clients cannot be shared between threads, pop a new one from
+/// the thread pool in every thread instead.
 pub struct Client<'a> {
     client_pool: &'a ClientPool,
     inner:       *mut bindings::mongoc_client_t
@@ -273,9 +278,7 @@ impl<'a> Client<'a> {
         )
     }
 
-    /// Queries the server for the current server status.
-    ///
-    /// See: http://api.mongodb.org/c/current/mongoc_client_get_server_status.html
+    /// Queries the server for the current server status, returns a document with this information.
     pub fn get_server_status(&self, read_prefs: Option<ReadPrefs>) -> Result<Document> {
         assert!(!self.inner.is_null());
 
