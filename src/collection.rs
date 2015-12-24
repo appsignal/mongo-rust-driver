@@ -307,7 +307,7 @@ impl<'a> Collection<'a> {
             )
         };
 
-        BulkOperation::new(self, inner)
+        unsafe { BulkOperation::new(self, inner) }
     }
 
     pub fn drop(&mut self) -> Result<()> {

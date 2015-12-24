@@ -7,13 +7,21 @@ use super::collection::Collection;
 
 use super::Result;
 
+/// `BulkOperation` provides an abstraction for submitting multiple write operations as a single batch.
+///
+/// Create a `BulkOperation` by calling `create_bulk_operation` on a `Collection`. After adding all of
+/// the write operations using the functions on this struct, `execute` to execute the operation on
+/// the server. After executing the bulk operation is consumed and cannot be used anymore.
+
 pub struct BulkOperation<'a> {
     _collection: &'a Collection<'a>,
     inner:       *mut bindings::mongoc_bulk_operation_t
 }
 
-impl<'a> BulkOperation<'a> {
-    pub fn new(
+impl<'a>BulkOperation<'a> {
+    /// Create a new bulk operation, only for internal usage.
+    #[doc(hidden)]
+    pub unsafe fn new(
         collection: &'a Collection<'a>,
         inner:      *mut bindings::mongoc_bulk_operation_t
     ) -> BulkOperation<'a> {
@@ -26,8 +34,6 @@ impl<'a> BulkOperation<'a> {
 
     /// Queue an insert of a single document into a bulk operation.
     /// The insert is not performed until `execute` is called.
-    ///
-    /// See: http://api.mongodb.org/c/current/mongoc_bulk_operation_insert.html
     pub fn insert(
         &self,
         document: &Document
@@ -42,10 +48,8 @@ impl<'a> BulkOperation<'a> {
         Ok(())
     }
 
-    /// Queue removal of al documents matching selector into a bulk operation.
+    /// Queue removal of all documents matching the provided selector into a bulk operation.
     /// The removal is not performed until `execute` is called.
-    ///
-    /// See: http://api.mongodb.org/c/current/mongoc_bulk_operation_remove.html
     pub fn remove(
         &self,
         selector: &Document
@@ -62,8 +66,6 @@ impl<'a> BulkOperation<'a> {
 
     /// Queue removal of a single document into a bulk operation.
     /// The removal is not performed until `execute` is called.
-    ///
-    /// See: http://api.mongodb.org/c/current/mongoc_bulk_operation_remove_one.html
     pub fn remove_one(
         &self,
         selector: &Document
@@ -80,8 +82,6 @@ impl<'a> BulkOperation<'a> {
 
     /// Queue replacement of a single document into a bulk operation.
     /// The replacement is not performed until `execute` is called.
-    ///
-    /// See: http://api.mongodb.org/c/current/mongoc_bulk_operation_remove_one.html
     pub fn replace_one(
         &self,
         selector: &Document,
@@ -105,8 +105,6 @@ impl<'a> BulkOperation<'a> {
     ///
     /// TODO: document must only contain fields whose key starts
     /// with $, these is no error handling for this.
-    ///
-    /// See: http://api.mongodb.org/c/current/mongoc_bulk_operation_update_one.html
     pub fn update_one(
         &self,
         selector: &Document,
@@ -130,8 +128,6 @@ impl<'a> BulkOperation<'a> {
     ///
     /// TODO: document must only contain fields whose key starts
     /// with $, these is no error handling for this.
-    ///
-    /// See: http://api.mongodb.org/c/current/mongoc_bulk_operation_update_one.html
     pub fn update(
         &self,
         selector: &Document,
@@ -157,8 +153,6 @@ impl<'a> BulkOperation<'a> {
     /// multiple times.
     ///
     /// Returns a document with an overview of the bulk operation if successfull.
-    ///
-    /// See: http://api.mongodb.org/c/current/mongoc_bulk_operation_execute.html
     pub fn execute(self) -> Result<Document> {
         // Bsonc to store the reply
         let mut reply = Bsonc::new();
