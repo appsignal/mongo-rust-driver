@@ -1,4 +1,4 @@
-//! Client to access to a MongoDB nog, replica set or sharded cluster.
+//! Client to access to a MongoDB node, replica set or sharded cluster.
 //!
 //! Get started by creating a `ClientPool` you can use to pop a `Client`.
 
