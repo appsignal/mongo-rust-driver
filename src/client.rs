@@ -1,3 +1,7 @@
+//! Client to access to a MongoDB nog, replica set or sharded cluster.
+//!
+//! Get started by creating a `ClientPool` you can use to pop a `Client`.
+
 use std::fmt;
 use std::ffi::CString;
 use std::path::PathBuf;
@@ -20,13 +24,14 @@ use super::database::Database;
 use super::uri::Uri;
 use super::read_prefs::ReadPrefs;
 
-/// Client pool to a MongoDB cluster.
+/// Pool that allows usage of clients out of a single pool from multiple threads.
 ///
-/// This client pool cannot be cloned, but it can be shared between threads by using an `Arc`.
 /// Use the pool to pop a client and do operations. The client will be automatically added
 /// back to the pool when it goes out of scope.
 ///
-/// See: http://api.mongodb.org/c/current/mongoc_client_pool_t.html
+/// This client pool cannot be cloned, but it can be use from different threads by using an `Arc`.
+/// Clients cannot be shared between threads, pop a client from the pool for very single thread
+/// where you need a connection.
 pub struct ClientPool {
     // Uri and SslOptions need to be present for the lifetime of this pool otherwise the C driver
     // loses access to resources it needs.
@@ -36,10 +41,9 @@ pub struct ClientPool {
 }
 
 impl ClientPool {
-    /// Create a new ClientPool with optionally SSL options
-    ///
-    /// See: http://api.mongodb.org/c/current/mongoc_client_pool_t.html
-    /// And: http://api.mongodb.org/c/current/mongoc_ssl_opt_t.html
+    /// Create a new ClientPool with that can provide clients pointing to the specified uri.
+    /// The pool will connect via SSL if you add `?ssl=true` to the uri. You can optionally pass
+    /// in SSL options to configure SSL certificate usage and so on.
     pub fn new(uri: Uri, ssl_options: Option<SslOptions>) -> ClientPool {
         super::init();
         let pool = unsafe {
@@ -65,13 +69,12 @@ impl ClientPool {
         }
     }
 
-    /// Get a reference to this pool's Uri
+    /// Get a reference to this pool's Uri.
     pub fn get_uri(&self) -> &Uri {
         &self.uri
     }
 
     /// Retrieve a client from the client pool, possibly blocking until one is available.
-    /// See: http://api.mongodb.org/c/current/mongoc_client_pool_pop.html
     pub fn pop(&self) -> Client {
         assert!(!self.inner.is_null());
         let client = unsafe { bindings::mongoc_client_pool_pop(self.inner) };
@@ -82,7 +85,6 @@ impl ClientPool {
     }
 
     /// Return a client back to the client pool, called from drop of client.
-    /// See: http://api.mongodb.org/c/current/mongoc_client_pool_push.html
     unsafe fn push(&self, mongo_client: *mut bindings::mongoc_client_t) {
         assert!(!self.inner.is_null());
         assert!(!mongo_client.is_null());
@@ -111,6 +113,7 @@ impl Drop for ClientPool {
     }
 }
 
+/// Optional SSL configuration for a `ClientPool`.
 pub struct SslOptions {
     inner:                bindings::mongoc_ssl_opt_t,
     // We need to store everything so both memory sticks around
@@ -129,6 +132,8 @@ pub struct SslOptions {
 }
 
 impl SslOptions {
+    /// Create a new ssl options instance that can be used to configured
+    /// a `ClientPool`.
     pub fn new(
         pem_file:             Option<PathBuf>,
         pem_password:         Option<String>,
@@ -223,7 +228,7 @@ impl Clone for SslOptions {
 ///
 /// It maintains management of underlying sockets and routing to individual nodes based on
 /// `ReadPrefs` or `WriteConcern`. Clients cannot be shared between threads, pop a new one from
-/// the thread pool in every thread instead.
+/// a `ClientPool` in every thread that needs a connection instead.
 pub struct Client<'a> {
     client_pool: &'a ClientPool,
     inner:       *mut bindings::mongoc_client_t
