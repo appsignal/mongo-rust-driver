@@ -36,7 +36,6 @@ use std::sync::{Once,ONCE_INIT};
 
 use mongoc::bindings;
 
-pub mod bulk_operation;
 pub mod client;
 pub mod collection;
 pub mod cursor;
