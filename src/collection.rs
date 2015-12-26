@@ -1,3 +1,7 @@
+//! Access to a MongoDB collection
+//!
+//! Collection is the main type used when accessing collections.
+
 use std::ptr;
 use std::ffi::CStr;
 use std::borrow::Cow;
@@ -20,6 +24,7 @@ use super::flags::{Flags,FlagsValue,InsertFlag,QueryFlag,RemoveFlag,UpdateFlag};
 use super::write_concern::WriteConcern;
 use super::read_prefs::ReadPrefs;
 
+#[doc(hidden)]
 pub enum CreatedBy<'a> {
     BorrowedClient(&'a Client<'a>),
     OwnedClient(Client<'a>),
@@ -27,14 +32,18 @@ pub enum CreatedBy<'a> {
     OwnedDatabase(Database<'a>)
 }
 
+/// Provides access to a collection for most CRUD operations, I.e. insert, update, delete, find, etc.
+///
+/// A collection instance can be created by calling `get_collection` on a `Client` or `Database`
+/// instance.
 pub struct Collection<'a> {
     _created_by: CreatedBy<'a>,
     inner:      *mut bindings::mongoc_collection_t
 }
 
-/// Options to configure a `BulkOperation`.
+/// Options to configure a bulk operation.
 pub struct BulkOperationOptions {
-    /// If the operations must be performed in order.
+    /// If the operations must be performed in order
     pub ordered:       bool,
     /// `WriteConcern` to use
     pub write_concern: WriteConcern
@@ -51,13 +60,18 @@ impl BulkOperationOptions {
     }
 }
 
+/// Options to configure a find and modify operation.
 pub struct FindAndModifyOptions {
+    /// Sort order for the query
     pub sort:   Option<Document>,
+    /// If the new version of the document should be returned
     pub new:    bool,
+    /// The fields to return
     pub fields: Option<Document>
 }
 
 impl FindAndModifyOptions {
+    /// Default options used if none are provided.
     pub fn default() -> FindAndModifyOptions {
         FindAndModifyOptions {
             sort:   None,
@@ -74,21 +88,32 @@ impl FindAndModifyOptions {
     }
 }
 
+/// Possible find and modify operations.
 pub enum FindAndModifyOperation<'a> {
+    /// Update the matching documents
     Update(&'a Document),
+    /// Upsert the matching documents
     Upsert(&'a Document),
+    /// Remove the matching documents
     Remove
 }
 
+/// Options to configure a count operation.
 pub struct CountOptions {
+    /// The query flags to use
     pub query_flags: Flags<QueryFlag>,
+    /// Number of results to skip, zero to ignore
     pub skip:        u32,
+    /// Limit to the number of results, zero to ignore
     pub limit:       u32,
+    /// Optional extra keys to add to the count
     pub opts:        Option<Document>,
+    /// Read prefs to use
     pub read_prefs:  Option<ReadPrefs>
 }
 
 impl CountOptions {
+    /// Default options used if none are provided.
     pub fn default() -> CountOptions {
         CountOptions {
             query_flags: Flags::new(),
@@ -100,12 +125,16 @@ impl CountOptions {
     }
 }
 
+/// Options to configure an insert operation.
 pub struct InsertOptions {
+    /// Flags to use
     pub insert_flags:  Flags<InsertFlag>,
+    /// Write concern to use
     pub write_concern: WriteConcern
 }
 
 impl InsertOptions {
+    /// Default options used if none are provided.
     pub fn default() -> InsertOptions {
         InsertOptions {
             insert_flags:  Flags::new(),
@@ -114,12 +143,16 @@ impl InsertOptions {
     }
 }
 
+/// Options to configure a remove operation.
 pub struct RemoveOptions {
+    /// Flags to use
     pub remove_flags:  Flags<RemoveFlag>,
+    /// Write concern to use
     pub write_concern: WriteConcern
 }
 
 impl RemoveOptions {
+    /// Default options used if none are provided.
     pub fn default() -> RemoveOptions {
         RemoveOptions {
             remove_flags:  Flags::new(),
@@ -128,12 +161,16 @@ impl RemoveOptions {
     }
 }
 
+/// Options to configure an update operation.
 pub struct UpdateOptions {
+    /// Flags to use
     pub update_flags:  Flags<UpdateFlag>,
+    /// Write concern to use
     pub write_concern: WriteConcern
 }
 
 impl UpdateOptions {
+    /// Default options used if none are provided.
     pub fn default() -> UpdateOptions {
         UpdateOptions {
             update_flags:  Flags::new(),
@@ -142,12 +179,16 @@ impl UpdateOptions {
     }
 }
 
+/// Options to configure a tailing query.
 pub struct TailOptions {
+    /// Duration to wait before checking for new results
     pub wait_duration: Duration,
+    /// Maximum number of retries if there is an error
     pub max_retries:   u32
 }
 
 impl TailOptions {
+    /// Default options used if none are provided.
     pub fn default() -> TailOptions {
         TailOptions {
             wait_duration: Duration::from_millis(500),
@@ -157,6 +198,7 @@ impl TailOptions {
 }
 
 impl<'a> Collection<'a> {
+    #[doc(hidden)]
     pub fn new(
         created_by: CreatedBy<'a>,
         inner:      *mut bindings::mongoc_collection_t
@@ -169,8 +211,7 @@ impl<'a> Collection<'a> {
     }
 
     /// Execute a command on the collection
-    ///
-    /// See: http://api.mongodb.org/c/current/mongoc_collection_command.html
+    /// This is performed lazily and therefore requires calling `next` on the resulting cursor.
     pub fn command(
         &'a self,
         command: Document,
@@ -212,18 +253,13 @@ impl<'a> Collection<'a> {
         ))
     }
 
-    /// Simplified version of command that returns the first document
-    ///
-    /// See: http://api.mongodb.org/c/current/mongoc_database_command_simple.html
+    /// Simplified version of `command` that returns the first document immediately.
     pub fn command_simple(
         &'a self,
         command: Document,
-        options: Option<&CommandAndFindOptions>
+        read_prefs: Option<&ReadPrefs>
     ) -> Result<Document> {
         assert!(!self.inner.is_null());
-
-        let default_options = CommandAndFindOptions::default();
-        let options         = options.unwrap_or(&default_options);
 
         // Bsonc to store the reply
         let mut reply = Bsonc::new();
@@ -234,7 +270,7 @@ impl<'a> Collection<'a> {
             bindings::mongoc_collection_command_simple(
                 self.inner,
                 try!(Bsonc::from_document(&command)).inner(),
-                match options.read_prefs {
+                match read_prefs {
                     Some(ref prefs) => prefs.inner(),
                     None => ptr::null()
                 },
@@ -253,6 +289,10 @@ impl<'a> Collection<'a> {
         }
     }
 
+    /// Execute a count query on the underlying collection.
+    /// The `query` bson is not validated, simply passed along to the server. As such, compatibility and errors should be validated in the appropriate server documentation.
+    ///
+    /// For more information, see the [query reference](https://docs.mongodb.org/manual/reference/operator/query/) at the MongoDB website.
     pub fn count(
         &self,
         query:   &Document,
@@ -294,6 +334,9 @@ impl<'a> Collection<'a> {
         }
     }
 
+    /// Create a bulk operation. After creating call various functions such as `update`,
+    /// `insert` and others. When calling `execute` these operations will be executed in
+    /// batches.
     pub fn create_bulk_operation(
         &'a self,
         options: Option<&BulkOperationOptions>
@@ -314,6 +357,7 @@ impl<'a> Collection<'a> {
         BulkOperation::new(self, inner)
     }
 
+    /// Request that a collection be dropped, including all indexes associated with the collection.
     pub fn drop(&mut self) -> Result<()> {
         assert!(!self.inner.is_null());
         let mut error = BsoncError::empty();
@@ -330,6 +374,10 @@ impl<'a> Collection<'a> {
         Ok(())
     }
 
+    /// Execute a query on the underlying collection.
+    /// If no options are necessary, query can simply contain a query such as `{a:1}`.
+    /// If you would like to specify options such as a sort order, the query must be placed inside of `{"$query": {}}`
+    /// as specified by the server documentation. See the example below for how to properly specify additional options to query.
     pub fn find(
         &'a self,
         query:   &Document,
@@ -371,10 +419,9 @@ impl<'a> Collection<'a> {
         ))
     }
 
-    // Update and return an object.
-    //
-    // This is a thin wrapper around the findAndModify command. Pass in
-    // an operation that either updates, upserts or removes.
+    /// Update and return an object.
+    /// This is a thin wrapper around the findAndModify command. Pass in
+    /// an operation that either updates, upserts or removes.
     pub fn find_and_modify(
         &'a self,
         query:     &Document,
@@ -447,6 +494,7 @@ impl<'a> Collection<'a> {
         }
     }
 
+    /// Get the name of the collection.
     pub fn get_name(&self) -> Cow<str> {
         let cstr = unsafe {
             CStr::from_ptr(bindings::mongoc_collection_get_name(self.inner))
@@ -454,6 +502,9 @@ impl<'a> Collection<'a> {
         String::from_utf8_lossy(cstr.to_bytes())
     }
 
+    /// Insert document into collection.
+    /// If no `_id` element is found in document, then an id will be generated locally and added to the document.
+    // TODO: You can retrieve a generated _id from mongoc_collection_get_last_error().
     pub fn insert(
         &'a self,
         document: &Document,
@@ -482,6 +533,9 @@ impl<'a> Collection<'a> {
         }
     }
 
+    /// Remove documents in the given collection that match selector.
+    /// The bson `selector` is not validated, simply passed along as appropriate to the server. As such, compatibility and errors should be validated in the appropriate server documentation.
+    ///  If you want to limit deletes to a single document, add the `SingleRemove` flag.
     pub fn remove(
         &self,
         selector: &Document,
@@ -510,6 +564,8 @@ impl<'a> Collection<'a> {
         }
     }
 
+    /// Save a document into the collection. If the document has an `_id` field it will be updated.
+    /// Otherwise it will be inserted.
     pub fn save(
         &self,
         document:      &Document,
@@ -537,9 +593,8 @@ impl<'a> Collection<'a> {
         }
     }
 
-    /// This function shall update documents in collection that match selector.
-    ///
-    /// See: http://api.mongodb.org/c/current/mongoc_collection_update.html
+    /// This function updates documents in collection that match selector.
+    /// By default, updates only a single document. Add `MultiUpdate` flag to update multiple documents.
     pub fn update(
         &self,
         selector: &Document,
@@ -616,7 +671,7 @@ impl<'a> Drop for Collection<'a> {
 ///
 /// Create a `BulkOperation` by calling `create_bulk_operation` on a `Collection`. After adding all of
 /// the write operations using the functions on this struct, `execute` to execute the operation on
-/// the server. After executing the bulk operation is consumed and cannot be used anymore.
+/// the server in batches. After executing the bulk operation is consumed and cannot be used anymore.
 pub struct BulkOperation<'a> {
     _collection: &'a Collection<'a>,
     inner:       *mut bindings::mongoc_bulk_operation_t

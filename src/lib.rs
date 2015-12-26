@@ -96,16 +96,24 @@ unsafe extern "C" fn mongoc_log_handler(
     }
 }
 
+/// Options to configure both command and find operations.
 pub struct CommandAndFindOptions {
+    /// Flags to use
     pub query_flags: flags::Flags<flags::QueryFlag>,
+    /// Number of documents to skip, zero to ignore
     pub skip:        u32,
+    /// Max number of documents to return, zero to ignore
     pub limit:       u32,
+    /// Number of documents in each batch, zero to ignore (default is 100)
     pub batch_size:  u32,
+    /// Fields to return, not all commands support this option
     pub fields:      Option<bson::Document>,
+    /// Read prefs to use
     pub read_prefs:  Option<read_prefs::ReadPrefs>
 }
 
 impl CommandAndFindOptions {
+    /// Default options used if none are provided.
     pub fn default() -> CommandAndFindOptions {
         CommandAndFindOptions {
             query_flags: flags::Flags::new(),
