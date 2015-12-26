@@ -5,7 +5,9 @@
 //! underlying C driver in the recommended way specified in it's [documentation](http://api.mongodb.org/c/current/).
 //!
 //! To get started create a client pool wrapped in an `Arc` so we can share it between threads. Then pop a client from it
-//! you can use to perform operations:
+//! you can use to perform operations.
+//!
+//! # Example
 //!
 //! ```
 //! use std::sync::Arc;
@@ -18,7 +20,8 @@
 //! client.get_server_status(None).unwrap();
 //! ```
 //!
-//! See the documentation for the various modules to find out how you can use the driver.
+//! See the documentation for the available modules to find out how you can use the driver beyond
+//! this.
 
 extern crate libc;
 extern crate mongoc_sys as mongoc;
