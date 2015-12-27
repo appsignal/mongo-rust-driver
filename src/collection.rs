@@ -1,6 +1,6 @@
-//! Access to a MongoDB collection
+//! Access to a MongoDB collection.
 //!
-//! Collection is the main type used when accessing collections.
+//! `Collection` is the main type used when accessing collections.
 
 use std::ptr;
 use std::ffi::CStr;
@@ -34,7 +34,7 @@ pub enum CreatedBy<'a> {
 
 /// Provides access to a collection for most CRUD operations, I.e. insert, update, delete, find, etc.
 ///
-/// A collection instance can be created by calling `get_collection` on a `Client` or `Database`
+/// A collection instance can be created by calling `get_collection` or `take_database` on a `Client` or `Database`
 /// instance.
 pub struct Collection<'a> {
     _created_by: CreatedBy<'a>,
@@ -210,7 +210,7 @@ impl<'a> Collection<'a> {
         }
     }
 
-    /// Execute a command on the collection
+    /// Execute a command on the collection.
     /// This is performed lazily and therefore requires calling `next` on the resulting cursor.
     pub fn command(
         &'a self,

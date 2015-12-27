@@ -1,3 +1,5 @@
+//! Access to a MongoDB database.
+
 use std::ffi::{CString,CStr};
 use std::borrow::Cow;
 use std::ptr;
@@ -14,19 +16,25 @@ use super::collection;
 use super::collection::Collection;
 use super::cursor;
 use super::cursor::Cursor;
+use super::read_prefs::ReadPrefs;
 use flags::FlagsValue;
 
+#[doc(hidden)]
 pub enum CreatedBy<'a> {
     BorrowedClient(&'a Client<'a>),
     OwnedClient(Client<'a>)
 }
 
+/// Provides access to a MongoDB database.
+///
+/// A database instance can be created by calling `get_database` or `take_database` on a `Client` instance.
 pub struct Database<'a> {
     _created_by: CreatedBy<'a>,
     inner:   *mut bindings::mongoc_database_t
 }
 
 impl<'a> Database<'a> {
+    #[doc(ignore)]
     pub fn new(
         created_by: CreatedBy<'a>,
         inner: *mut bindings::mongoc_database_t
@@ -38,9 +46,8 @@ impl<'a> Database<'a> {
         }
     }
 
-    /// Execute a command on the database
-    ///
-    /// See: http://api.mongodb.org/c/current/mongoc_database_command.html
+    /// Execute a command on the database.
+    /// This is performed lazily and therefore requires calling `next` on the resulting cursor.
     pub fn command(
         &'a self,
         command: Document,
@@ -82,18 +89,13 @@ impl<'a> Database<'a> {
         ))
     }
 
-    /// Simplified version of command that returns the first document
-    ///
-    /// See: http://api.mongodb.org/c/current/mongoc_database_command_simple.html
+    /// Simplified version of `command` that returns the first document immediately.
     pub fn command_simple(
         &'a self,
         command: Document,
-        options: Option<&CommandAndFindOptions>
+        read_prefs: Option<&ReadPrefs>
     ) -> Result<Document> {
         assert!(!self.inner.is_null());
-
-        let default_options = CommandAndFindOptions::default();
-        let options         = options.unwrap_or(&default_options);
 
         // Bsonc to store the reply
         let mut reply = Bsonc::new();
@@ -104,7 +106,7 @@ impl<'a> Database<'a> {
             bindings::mongoc_database_command_simple(
                 self.inner,
                 try!(Bsonc::from_document(&command)).inner(),
-                match options.read_prefs {
+                match read_prefs {
                     Some(ref prefs) => prefs.inner(),
                     None => ptr::null()
                 },
@@ -123,6 +125,7 @@ impl<'a> Database<'a> {
         }
     }
 
+    /// Create a new collection in this database.
     pub fn create_collection<S: Into<Vec<u8>>>(
         &self,
         name:    S,
@@ -179,6 +182,7 @@ impl<'a> Database<'a> {
         )
     }
 
+    /// Get the name of this database.
     pub fn get_name(&self) -> Cow<str> {
         let cstr = unsafe {
             CStr::from_ptr(bindings::mongoc_database_get_name(self.inner))
