@@ -1,3 +1,5 @@
+//! Access to a MongoDB query cursor.
+
 use std::iter::Iterator;
 use std::ptr;
 use std::thread;
@@ -16,12 +18,22 @@ use super::CommandAndFindOptions;
 
 use super::Result;
 
+#[doc(hidden)]
 pub enum CreatedBy<'a> {
     Client(&'a Client<'a>),
     Database(&'a Database<'a>),
     Collection(&'a Collection<'a>)
 }
 
+/// Provides access to a MongoDB cursor for a normal operation.
+///
+/// It wraps up the wire protocol negotiation required to initiate a query and
+/// retrieve an unknown number of documents. Cursors are lazy, meaning that no network
+/// traffic occurs until the first call to `next`. At this point various functions to get
+/// information about the state of the cursor are available.
+///
+/// `Cursor` implements the `Iterator` trait, so you can use with all normal Rust means
+/// of iteration and looping.
 pub struct Cursor<'a> {
     _created_by:        CreatedBy<'a>,
     inner:              *mut bindings::mongoc_cursor_t,
@@ -33,6 +45,7 @@ pub struct Cursor<'a> {
 }
 
 impl<'a> Cursor<'a> {
+    #[doc(hidden)]
     pub fn new(
         created_by: CreatedBy<'a>,
         inner:      *mut bindings::mongoc_cursor_t,
@@ -140,6 +153,10 @@ impl<'a> Drop for Cursor<'a> {
 
 /// Cursor that will reconnect and resume tailing a collection
 /// at the right point if the connection fails.
+///
+/// This cursor will wait for new results when there are none, so calling `next`
+/// is a blocking operation. If an error occurs the iterator will retry, if errors
+/// keep occuring it will eventually return an error result.
 pub struct TailingCursor<'a> {
     collection:   &'a Collection<'a>,
     query:        Document,
@@ -151,6 +168,7 @@ pub struct TailingCursor<'a> {
 }
 
 impl<'a> TailingCursor<'a> {
+    #[doc(hidden)]
     pub fn new(
         collection:   &'a Collection<'a>,
         query:        Document,
