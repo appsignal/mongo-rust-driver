@@ -1,5 +1,4 @@
-use mongo_driver::uri::Uri;
-use mongo_driver::client::ClientPool;
+use mongo_driver::client::{ClientPool,Uri};
 
 #[test]
 fn test_command() {

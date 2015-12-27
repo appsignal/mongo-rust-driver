@@ -4,8 +4,7 @@ use std::time::Duration;
 
 use bson;
 
-use mongo_driver::uri::Uri;
-use mongo_driver::client::ClientPool;
+use mongo_driver::client::{ClientPool,Uri};
 use mongo_driver::Result;
 
 #[test]

@@ -11,8 +11,7 @@
 //!
 //! ```
 //! use std::sync::Arc;
-//! use mongo_driver::uri::Uri;
-//! use mongo_driver::client::ClientPool;
+//! use mongo_driver::client::{ClientPool,Uri};
 //!
 //! let uri = Uri::new("mongodb://localhost:27017/").unwrap();
 //! let pool = Arc::new(ClientPool::new(uri.clone(), None));
@@ -45,7 +44,6 @@ pub mod cursor;
 pub mod database;
 pub mod flags;
 pub mod read_prefs;
-pub mod uri;
 pub mod write_concern;
 
 mod bsonc;

@@ -3,8 +3,7 @@ use std::path::PathBuf;
 use std::sync::Arc;
 use std::thread;
 
-use mongo_driver::uri::Uri;
-use mongo_driver::client::{ClientPool,SslOptions};
+use mongo_driver::client::{ClientPool,SslOptions,Uri};
 
 #[test]
 fn test_new_pool_pop_client_and_borrow_collection() {

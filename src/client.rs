@@ -2,8 +2,9 @@
 //!
 //! Get started by creating a `ClientPool` you can use to pop a `Client`.
 
+use std::borrow::Cow;
 use std::fmt;
-use std::ffi::CString;
+use std::ffi::{CStr,CString};
 use std::path::PathBuf;
 use std::mem;
 use std::ptr;
@@ -21,7 +22,6 @@ use super::collection;
 use super::collection::Collection;
 use super::database;
 use super::database::Database;
-use super::uri::Uri;
 use super::read_prefs::ReadPrefs;
 
 /// Pool that allows usage of clients out of a single pool from multiple threads.
@@ -320,6 +320,84 @@ impl<'a> Drop for Client<'a> {
         assert!(!self.inner.is_null());
         unsafe {
             self.client_pool.push(self.inner);
+        }
+    }
+}
+
+/// Abstraction on top of MongoDB connection URI format.
+pub struct Uri {
+    inner: *mut bindings::mongoc_uri_t
+}
+
+impl Uri {
+    /// Parses a string containing a MongoDB style URI connection string.
+    ///
+    /// Returns None if the uri is not in the correct format, there is no
+    /// further information available if this is not the case.
+    pub fn new<T: Into<Vec<u8>>>(uri_string: T) -> Option<Uri> {
+        let uri_cstring = CString::new(uri_string).unwrap();
+        let uri = unsafe { bindings::mongoc_uri_new(uri_cstring.as_ptr()) };
+        if uri.is_null() {
+            None
+        } else {
+            Some(Uri { inner: uri })
+        }
+    }
+
+    unsafe fn inner(&self) -> *const bindings::mongoc_uri_t {
+        assert!(!self.inner.is_null());
+        self.inner
+    }
+
+    pub fn as_str<'a>(&'a self) -> Cow<'a, str> {
+        assert!(!self.inner.is_null());
+        unsafe {
+            let cstr = CStr::from_ptr(
+                bindings::mongoc_uri_get_string(self.inner)
+            );
+            String::from_utf8_lossy(cstr.to_bytes())
+        }
+    }
+
+    pub fn get_database<'a>(&'a self) -> Option<Cow<'a, str>> {
+        assert!(!self.inner.is_null());
+        unsafe {
+            let ptr = bindings::mongoc_uri_get_database(self.inner);
+            if ptr.is_null() {
+                None
+            } else {
+                let cstr = CStr::from_ptr(ptr);
+                Some(String::from_utf8_lossy(cstr.to_bytes()))
+            }
+        }
+    }
+
+    // TODO add various methods that are available on uri
+}
+
+impl PartialEq for Uri {
+    fn eq(&self, other: &Uri) -> bool {
+        self.as_str() == other.as_str()
+    }
+}
+
+impl fmt::Debug for Uri {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{}", self.as_str())
+    }
+}
+
+impl Clone for Uri {
+    fn clone(&self) -> Uri {
+        Uri::new(self.as_str().into_owned()).unwrap()
+    }
+}
+
+impl Drop for Uri {
+    fn drop(&mut self) {
+        assert!(!self.inner.is_null());
+        unsafe {
+            bindings::mongoc_uri_destroy(self.inner);
         }
     }
 }
