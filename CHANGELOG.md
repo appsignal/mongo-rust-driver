@@ -1,3 +1,6 @@
+# 0.2.2
+* Publicly export MongoErrorDomain and MongoErrorCode
+
 # 0.2.1
 * Add documentation url to Cargo.toml
 
