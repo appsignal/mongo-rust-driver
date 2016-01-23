@@ -4,10 +4,15 @@ use mongoc::bindings;
 
 /// Describes how reads should be dispatched.
 pub enum ReadMode {
+    /// Default mode. All operations read from the current replica set primary.
     Primary,
+    /// All operations read from among the nearest secondary members of the replica set.
     Secondary,
+    /// In most situations, operations read from the primary but if it is unavailable, operations read from secondary members.
     PrimaryPreferred,
+    /// In most situations, operations read from among the nearest secondary members, but if no secondaries are available, operations read from the primary.
     SecondaryPreferred,
+    /// Operations read from among the nearest members of the replica set, irrespective of the member’s type.
     Nearest
 }
 
