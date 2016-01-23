@@ -55,7 +55,7 @@ impl BulkOperationOptions {
     pub fn default() -> BulkOperationOptions {
         BulkOperationOptions {
             ordered:       false,
-            write_concern: WriteConcern::new()
+            write_concern: WriteConcern::default()
         }
     }
 }
@@ -138,7 +138,7 @@ impl InsertOptions {
     pub fn default() -> InsertOptions {
         InsertOptions {
             insert_flags:  Flags::new(),
-            write_concern: WriteConcern::new()
+            write_concern: WriteConcern::default()
         }
     }
 }
@@ -156,7 +156,7 @@ impl RemoveOptions {
     pub fn default() -> RemoveOptions {
         RemoveOptions {
             remove_flags:  Flags::new(),
-            write_concern: WriteConcern::new()
+            write_concern: WriteConcern::default()
         }
     }
 }
@@ -174,7 +174,7 @@ impl UpdateOptions {
     pub fn default() -> UpdateOptions {
         UpdateOptions {
             update_flags:  Flags::new(),
-            write_concern: WriteConcern::new()
+            write_concern: WriteConcern::default()
         }
     }
 }
@@ -573,7 +573,7 @@ impl<'a> Collection<'a> {
     ) -> Result<()> {
         assert!(!self.inner.is_null());
 
-        let default_write_concern = WriteConcern::new();
+        let default_write_concern = WriteConcern::default();
         let write_concern         = write_concern.unwrap_or(&default_write_concern);
 
         let mut error = BsoncError::empty();
