@@ -7,11 +7,17 @@ use bson::{DecoderError,EncoderError,ValueAccessError};
 
 use mongoc::bindings;
 
+/// Wrapper for all errors that can occur in the driver.
 pub enum MongoError {
+    /// Error in the underlying C driver.
     Bsonc(BsoncError),
+    /// Error decoding Bson.
     Decoder(DecoderError),
+    /// Error encoding Bson.
     Encoder(EncoderError),
+    /// Error accessing a value on a Bson document.
     ValueAccessError(ValueAccessError),
+    /// Invalid params error that can be reported by the underlying C driver.
     InvalidParams(InvalidParamsError)
 }
 
@@ -79,10 +85,12 @@ impl From<ValueAccessError> for MongoError {
     }
 }
 
+/// Error in the underlying C driver.
 pub struct BsoncError {
     inner: bindings::bson_error_t,
 }
 
+/// MongoDB error domain.
 #[derive(Debug,PartialEq)]
 pub enum MongoErrorDomain {
     Blank,
@@ -103,6 +111,7 @@ pub enum MongoErrorDomain {
     Unknown
 }
 
+/// MongoDB error code.
 #[derive(Debug,PartialEq)]
 pub enum MongoErrorCode {
     Blank,
@@ -151,10 +160,12 @@ impl BsoncError {
         }
     }
 
+    /// Wether the error has content.
     pub fn is_empty(&self) -> bool {
         self.inner.domain == 0 && self.inner.code == 0
     }
 
+    /// The error's domain.
     pub fn domain(&self) -> MongoErrorDomain {
         match self.inner.domain {
             0                                 => MongoErrorDomain::Blank,
@@ -176,6 +187,7 @@ impl BsoncError {
         }
     }
 
+    /// The error's code.
     pub fn code(&self) -> MongoErrorCode {
         match self.inner.code {
             0                                                    => MongoErrorCode::Blank,
@@ -214,11 +226,13 @@ impl BsoncError {
         }
     }
 
+    /// The error's message.
     pub fn get_message(&self) -> Cow<str> {
         let cstr = unsafe { CStr::from_ptr(&self.inner.message as *const i8) };
         String::from_utf8_lossy(cstr.to_bytes())
     }
 
+    #[doc(hidden)]
     pub fn mut_inner(&mut self) -> &mut bindings::bson_error_t {
         &mut self.inner
     }
@@ -254,6 +268,7 @@ impl From<BsoncError> for MongoError {
     }
 }
 
+/// Invalid params error that can be reported by the underlying C driver.
 pub struct InvalidParamsError;
 
 impl fmt::Debug for InvalidParamsError {

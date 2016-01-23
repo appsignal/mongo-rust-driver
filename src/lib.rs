@@ -49,8 +49,9 @@ pub mod write_concern;
 mod bsonc;
 mod error;
 
-pub use error::{MongoError,BsoncError,InvalidParamsError};
+pub use error::{MongoError,BsoncError,MongoErrorDomain,MongoErrorCode,InvalidParamsError};
 
+/// Result that's used in all functions that perform operations on the database.
 pub type Result<T> = result::Result<T, MongoError>;
 
 static MONGOC_INIT: Once = ONCE_INIT;
