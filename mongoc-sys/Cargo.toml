@@ -6,7 +6,7 @@ authors     = ["Thijs Cadier <thijs@appsignal.com>"]
 build       = "build.rs"
 repository  = "https://github.com/thijsc/mongo-rust-driver"
 links       = "mongoc"
-license     = "MIT"
+license     = "MIT/Apache-2.0"
 exclude = [
     "mongo-c-driver-*"
 ]

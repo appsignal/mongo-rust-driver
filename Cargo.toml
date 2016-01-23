@@ -6,7 +6,7 @@ description = "Mongo Rust driver built on top of the Mongo C driver"
 readme      = "README.md"
 repository  = "https://github.com/thijsc/mongo-rust-driver"
 keywords    = ["mongodb", "database"]
-license     = "MIT"
+license     = "MIT/Apache-2.0"
 
 [[test]]
 name = "tests"
