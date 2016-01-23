@@ -1,7 +1,6 @@
 use chrono::*;
 
-use mongo_driver::uri::Uri;
-use mongo_driver::client::ClientPool;
+use mongo_driver::client::{ClientPool,Uri};
 
 use bson::oid::ObjectId;
 use bson::spec::BinarySubtype;

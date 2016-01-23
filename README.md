@@ -10,9 +10,12 @@ Bson encoding and decoding is handled by the [bson crate](https://github.com/zon
 
 The API should still be considered experimental, but I'm not expecting changes at the moment.
 
+[Documentation](http://thijsc.github.io/mongo-rust-driver/mongo_driver/)
+
 ## Compatibility
 
-The driver currently only builds on Unix, tested on Mac Os X and Linux so far.
+The driver currently only builds on Unix, tested on Mac Os X and Linux so far. It's compatible with MongoDB 2.4 up to 3.2 and
+has full replica set and SSL support.
 
 ## Logging
 

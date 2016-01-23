@@ -1,3 +1,27 @@
+//! This driver is a thin wrapper around the production-ready [Mongo C driver](https://github.com/mongodb/mongo-c-driver).
+//!
+//! It aims to provide a safe and ergonomic Rust interface which handles all the gnarly usage details of
+//! the C driver for you. We use Rust's type system to make sure that we can only use the
+//! underlying C driver in the recommended way specified in it's [documentation](http://api.mongodb.org/c/current/).
+//!
+//! To get started create a client pool wrapped in an `Arc` so we can share it between threads. Then pop a client from it
+//! you can use to perform operations.
+//!
+//! # Example
+//!
+//! ```
+//! use std::sync::Arc;
+//! use mongo_driver::client::{ClientPool,Uri};
+//!
+//! let uri = Uri::new("mongodb://localhost:27017/").unwrap();
+//! let pool = Arc::new(ClientPool::new(uri.clone(), None));
+//! let client = pool.pop();
+//! client.get_server_status(None).unwrap();
+//! ```
+//!
+//! See the documentation for the available modules to find out how you can use the driver beyond
+//! this.
+
 extern crate libc;
 extern crate mongoc_sys as mongoc;
 
@@ -14,14 +38,12 @@ use std::sync::{Once,ONCE_INIT};
 
 use mongoc::bindings;
 
-pub mod bulk_operation;
 pub mod client;
 pub mod collection;
 pub mod cursor;
 pub mod database;
 pub mod flags;
 pub mod read_prefs;
-pub mod uri;
 pub mod write_concern;
 
 mod bsonc;
@@ -72,16 +94,24 @@ unsafe extern "C" fn mongoc_log_handler(
     }
 }
 
+/// Options to configure both command and find operations.
 pub struct CommandAndFindOptions {
+    /// Flags to use
     pub query_flags: flags::Flags<flags::QueryFlag>,
+    /// Number of documents to skip, zero to ignore
     pub skip:        u32,
+    /// Max number of documents to return, zero to ignore
     pub limit:       u32,
+    /// Number of documents in each batch, zero to ignore (default is 100)
     pub batch_size:  u32,
+    /// Fields to return, not all commands support this option
     pub fields:      Option<bson::Document>,
+    /// Read prefs to use
     pub read_prefs:  Option<read_prefs::ReadPrefs>
 }
 
 impl CommandAndFindOptions {
+    /// Default options used if none are provided.
     pub fn default() -> CommandAndFindOptions {
         CommandAndFindOptions {
             query_flags: flags::Flags::new(),

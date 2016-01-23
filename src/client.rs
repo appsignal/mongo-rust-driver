@@ -1,5 +1,10 @@
+//! Client to access a MongoDB node, replica set or sharded cluster.
+//!
+//! Get started by creating a `ClientPool` you can use to pop a `Client`.
+
+use std::borrow::Cow;
 use std::fmt;
-use std::ffi::CString;
+use std::ffi::{CStr,CString};
 use std::path::PathBuf;
 use std::mem;
 use std::ptr;
@@ -17,16 +22,16 @@ use super::collection;
 use super::collection::Collection;
 use super::database;
 use super::database::Database;
-use super::uri::Uri;
 use super::read_prefs::ReadPrefs;
 
-/// Client pool to a MongoDB cluster.
+/// Pool that allows usage of clients out of a single pool from multiple threads.
 ///
-/// This client pool cannot be cloned, but it can be shared between threads by using an `Arc`.
 /// Use the pool to pop a client and do operations. The client will be automatically added
 /// back to the pool when it goes out of scope.
 ///
-/// See: http://api.mongodb.org/c/current/mongoc_client_pool_t.html
+/// This client pool cannot be cloned, but it can be use from different threads by using an `Arc`.
+/// Clients cannot be shared between threads, pop a client from the pool for very single thread
+/// where you need a connection.
 pub struct ClientPool {
     // Uri and SslOptions need to be present for the lifetime of this pool otherwise the C driver
     // loses access to resources it needs.
@@ -36,10 +41,9 @@ pub struct ClientPool {
 }
 
 impl ClientPool {
-    /// Create a new ClientPool with optionally SSL options
-    ///
-    /// See: http://api.mongodb.org/c/current/mongoc_client_pool_t.html
-    /// And: http://api.mongodb.org/c/current/mongoc_ssl_opt_t.html
+    /// Create a new ClientPool with that can provide clients pointing to the specified uri.
+    /// The pool will connect via SSL if you add `?ssl=true` to the uri. You can optionally pass
+    /// in SSL options to configure SSL certificate usage and so on.
     pub fn new(uri: Uri, ssl_options: Option<SslOptions>) -> ClientPool {
         super::init();
         let pool = unsafe {
@@ -65,13 +69,12 @@ impl ClientPool {
         }
     }
 
-    /// Get a reference to this pool's Uri
+    /// Get a reference to this pool's Uri.
     pub fn get_uri(&self) -> &Uri {
         &self.uri
     }
 
     /// Retrieve a client from the client pool, possibly blocking until one is available.
-    /// See: http://api.mongodb.org/c/current/mongoc_client_pool_pop.html
     pub fn pop(&self) -> Client {
         assert!(!self.inner.is_null());
         let client = unsafe { bindings::mongoc_client_pool_pop(self.inner) };
@@ -82,7 +85,6 @@ impl ClientPool {
     }
 
     /// Return a client back to the client pool, called from drop of client.
-    /// See: http://api.mongodb.org/c/current/mongoc_client_pool_push.html
     unsafe fn push(&self, mongo_client: *mut bindings::mongoc_client_t) {
         assert!(!self.inner.is_null());
         assert!(!mongo_client.is_null());
@@ -111,6 +113,7 @@ impl Drop for ClientPool {
     }
 }
 
+/// Optional SSL configuration for a `ClientPool`.
 pub struct SslOptions {
     inner:                bindings::mongoc_ssl_opt_t,
     // We need to store everything so both memory sticks around
@@ -129,6 +132,8 @@ pub struct SslOptions {
 }
 
 impl SslOptions {
+    /// Create a new ssl options instance that can be used to configured
+    /// a `ClientPool`.
     pub fn new(
         pem_file:             Option<PathBuf>,
         pem_password:         Option<String>,
@@ -219,6 +224,11 @@ impl Clone for SslOptions {
     }
 }
 
+/// Client that provides access to a MongoDB MongoDB node, replica-set, or sharded-cluster.
+///
+/// It maintains management of underlying sockets and routing to individual nodes based on
+/// `ReadPrefs` or `WriteConcern`. Clients cannot be shared between threads, pop a new one from
+/// a `ClientPool` in every thread that needs a connection instead.
 pub struct Client<'a> {
     client_pool: &'a ClientPool,
     inner:       *mut bindings::mongoc_client_t
@@ -273,9 +283,7 @@ impl<'a> Client<'a> {
         )
     }
 
-    /// Queries the server for the current server status.
-    ///
-    /// See: http://api.mongodb.org/c/current/mongoc_client_get_server_status.html
+    /// Queries the server for the current server status, returns a document with this information.
     pub fn get_server_status(&self, read_prefs: Option<ReadPrefs>) -> Result<Document> {
         assert!(!self.inner.is_null());
 
@@ -312,6 +320,84 @@ impl<'a> Drop for Client<'a> {
         assert!(!self.inner.is_null());
         unsafe {
             self.client_pool.push(self.inner);
+        }
+    }
+}
+
+/// Abstraction on top of MongoDB connection URI format.
+pub struct Uri {
+    inner: *mut bindings::mongoc_uri_t
+}
+
+impl Uri {
+    /// Parses a string containing a MongoDB style URI connection string.
+    ///
+    /// Returns None if the uri is not in the correct format, there is no
+    /// further information available if this is not the case.
+    pub fn new<T: Into<Vec<u8>>>(uri_string: T) -> Option<Uri> {
+        let uri_cstring = CString::new(uri_string).unwrap();
+        let uri = unsafe { bindings::mongoc_uri_new(uri_cstring.as_ptr()) };
+        if uri.is_null() {
+            None
+        } else {
+            Some(Uri { inner: uri })
+        }
+    }
+
+    unsafe fn inner(&self) -> *const bindings::mongoc_uri_t {
+        assert!(!self.inner.is_null());
+        self.inner
+    }
+
+    pub fn as_str<'a>(&'a self) -> Cow<'a, str> {
+        assert!(!self.inner.is_null());
+        unsafe {
+            let cstr = CStr::from_ptr(
+                bindings::mongoc_uri_get_string(self.inner)
+            );
+            String::from_utf8_lossy(cstr.to_bytes())
+        }
+    }
+
+    pub fn get_database<'a>(&'a self) -> Option<Cow<'a, str>> {
+        assert!(!self.inner.is_null());
+        unsafe {
+            let ptr = bindings::mongoc_uri_get_database(self.inner);
+            if ptr.is_null() {
+                None
+            } else {
+                let cstr = CStr::from_ptr(ptr);
+                Some(String::from_utf8_lossy(cstr.to_bytes()))
+            }
+        }
+    }
+
+    // TODO add various methods that are available on uri
+}
+
+impl PartialEq for Uri {
+    fn eq(&self, other: &Uri) -> bool {
+        self.as_str() == other.as_str()
+    }
+}
+
+impl fmt::Debug for Uri {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{}", self.as_str())
+    }
+}
+
+impl Clone for Uri {
+    fn clone(&self) -> Uri {
+        Uri::new(self.as_str().into_owned()).unwrap()
+    }
+}
+
+impl Drop for Uri {
+    fn drop(&mut self) {
+        assert!(!self.inner.is_null());
+        unsafe {
+            bindings::mongoc_uri_destroy(self.inner);
         }
     }
 }

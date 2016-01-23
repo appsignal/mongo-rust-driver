@@ -2,8 +2,7 @@ use bson;
 
 use mongo_driver::CommandAndFindOptions;
 use mongo_driver::collection::{CountOptions,FindAndModifyOperation};
-use mongo_driver::uri::Uri;
-use mongo_driver::client::ClientPool;
+use mongo_driver::client::{ClientPool,Uri};
 use mongo_driver::flags;
 
 #[test]

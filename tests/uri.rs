@@ -1,4 +1,4 @@
-use mongo_driver::uri::Uri;
+use mongo_driver::client::Uri;
 
 #[test]
 fn test_new_uri() {

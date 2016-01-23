@@ -1,23 +1,29 @@
+//! Flags to configure various MongoDB operations.
+
 use mongoc::bindings;
 
 use std::collections::BTreeSet;
 
+/// Structure to hold flags for various flag types
 pub struct Flags<T> {
     flags: BTreeSet<T>
 }
 
 impl <T> Flags<T> where T: Ord {
+    /// Creare a new empty flags instance
     pub fn new() -> Flags<T> {
         Flags {
             flags: BTreeSet::new()
         }
     }
 
+    /// Add a flag to this instance
     pub fn add(&mut self, flag: T) {
         self.flags.insert(flag);
     }
 }
 
+/// To provide the combined value of all flags.
 pub trait FlagsValue {
     fn flags(&self) -> u32;
 }
