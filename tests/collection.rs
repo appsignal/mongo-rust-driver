@@ -6,6 +6,34 @@ use mongo_driver::client::{ClientPool,Uri};
 use mongo_driver::flags;
 
 #[test]
+fn test_aggregate() {
+    let uri      = Uri::new("mongodb://localhost:27017/").unwrap();
+    let pool     = ClientPool::new(uri, None);
+    let client   = pool.pop();
+    let mut collection = client.get_collection("rust_driver_test", "aggregate");
+    collection.drop().unwrap_or(());
+
+    for _ in 0..5 {
+        assert!(collection.insert(&doc!{"key" => 1}, None).is_ok());
+    }
+
+    let pipeline = doc!{
+        "pipeline" => [
+            {
+                "$group" => {
+                    "_id" => "$key",
+                    "total" => {"$sum" => "$key"}
+                }
+            }
+        ]
+    };
+
+    let total = collection.aggregate(&pipeline, None).unwrap().next().unwrap().unwrap();
+
+    assert_eq!(Ok(5), total.get_i32("total"));
+}
+
+#[test]
 fn test_command() {
     let uri      = Uri::new("mongodb://localhost:27017/").unwrap();
     let pool     = ClientPool::new(uri, None);

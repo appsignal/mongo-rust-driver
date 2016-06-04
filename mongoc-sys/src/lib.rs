@@ -138,6 +138,7 @@ pub mod bindings {
     pub type mongoc_remove_flags_t = ::libc::c_uint;
     pub type mongoc_update_flags_t = ::libc::c_uint;
     extern "C" {
+        pub fn mongoc_collection_aggregate(collection: *mut mongoc_collection_t, flags: mongoc_query_flags_t, pipeline: *const bson_t, options: *const bson_t, read_prefs: *const mongoc_read_prefs_t) -> *mut mongoc_cursor_t;
         pub fn mongoc_collection_command(collection: *mut mongoc_collection_t, flags: mongoc_query_flags_t, skip: uint32_t, limit: uint32_t, batch_size: uint32_t, command: *const bson_t, fields: *const bson_t, read_prefs: *const mongoc_read_prefs_t) -> *mut mongoc_cursor_t;
         pub fn mongoc_collection_command_simple(collection: *mut mongoc_collection_t, command: *const bson_t, read_prefs: *const mongoc_read_prefs_t, reply: *mut bson_t, error: *mut bson_error_t) -> u8;
         pub fn mongoc_collection_count_with_opts(collection: *mut mongoc_collection_t, flags: mongoc_query_flags_t, query: *const bson_t, skip: int64_t, limit: int64_t, opts: *const bson_t, read_prefs: *const mongoc_read_prefs_t, error: *mut bson_error_t) -> int64_t;

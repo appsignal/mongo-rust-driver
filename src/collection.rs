@@ -41,6 +41,28 @@ pub struct Collection<'a> {
     inner:      *mut bindings::mongoc_collection_t
 }
 
+/// Options to configure an aggregate operation.
+pub struct AggregateOptions {
+    /// Flags to use
+    pub query_flags: Flags<QueryFlag>,
+    /// Options for the aggregate
+    pub options: Option<Document>,
+    /// Read prefs to use
+    pub read_prefs:  Option<ReadPrefs>
+}
+
+impl AggregateOptions {
+    /// Default options that are used if no options are specified
+    /// when aggregating.
+    pub fn default() -> AggregateOptions {
+        AggregateOptions {
+            query_flags: Flags::new(),
+            options: None,
+            read_prefs: None
+        }
+    }
+}
+
 /// Options to configure a bulk operation.
 pub struct BulkOperationOptions {
     /// If the operations must be performed in order
@@ -208,6 +230,46 @@ impl<'a> Collection<'a> {
             _created_by: created_by,
             inner:       inner
         }
+    }
+
+    /// Execute an aggregation query on the collection.
+    /// The bson 'pipeline' is not validated, simply passed along as appropriate to the server.
+    /// As such, compatibility and errors should be validated in the appropriate server documentation.
+    pub fn aggregate(
+        &'a self,
+        pipeline: &Document,
+        options: Option<&AggregateOptions>
+    ) -> Result<Cursor<'a>> {
+        let default_options = AggregateOptions::default();
+        let options         = options.unwrap_or(&default_options);
+
+        let cursor_ptr = unsafe {
+            bindings::mongoc_collection_aggregate(
+                self.inner,
+                options.query_flags.flags(),
+                try!(Bsonc::from_document(pipeline)).inner(),
+                match options.options {
+                    Some(ref o) => {
+                        try!(Bsonc::from_document(o)).inner()
+                    },
+                    None => ptr::null()
+                },
+                match options.read_prefs {
+                    Some(ref prefs) => prefs.inner(),
+                    None => ptr::null()
+                }
+            )
+        };
+
+        if cursor_ptr.is_null() {
+            return Err(InvalidParamsError.into())
+        }
+
+        Ok(Cursor::new(
+            cursor::CreatedBy::Collection(self),
+            cursor_ptr,
+            None
+        ))
     }
 
     /// Execute a command on the collection.
