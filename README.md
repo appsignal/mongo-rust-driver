@@ -14,7 +14,7 @@ The API should still be considered experimental, but I'm not expecting changes a
 
 ## Compatibility
 
-The driver currently only builds on Unix, tested on Mac Os X and Linux so far. It's compatible with MongoDB 2.4 up to 3.2 and
+The driver currently only builds on Unix, tested on Mac Os X and Linux so far. It's compatible with MongoDB 2.4 up to 3.4 and
 has full replica set and SSL support.
 
 ## Logging
