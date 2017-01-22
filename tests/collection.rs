@@ -228,8 +228,5 @@ fn test_insert_failure() {
 
     let result = collection.insert(&document, None);
     assert!(result.is_err());
-    assert_eq!(
-        "MongoError (BsoncError: Unknown/Unknown - No suitable servers found: `serverSelectionTimeoutMS` expired: [connection timeout calling ismaster on 'localhost:27018'])",
-        format!("{:?}", result.err().unwrap())
-    );
+    assert!(format!("{:?}", result.err().unwrap()).contains("No suitable servers found"));
 }
