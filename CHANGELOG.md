@@ -1,3 +1,6 @@
+# 0.6.0
+* Upgrade Mongo C driver to 1.6.3
+
 # 0.5.0
 * Upgrade Mongo C driver to 1.5.3
 
