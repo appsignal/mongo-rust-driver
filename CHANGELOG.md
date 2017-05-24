@@ -1,3 +1,12 @@
+# 0.5.0
+* Upgrade Mongo C driver to 1.5.3
+
+# 0.4.0
+* Upgrade Mongo C driver to 1.4.0
+
+# 0.3.0
+* Support for aggregations
+
 # 0.2.2
 * Publicly export MongoErrorDomain and MongoErrorCode
 
