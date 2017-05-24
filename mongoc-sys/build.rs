@@ -2,7 +2,7 @@ use std::env;
 use std::path::Path;
 use std::process::Command;
 
-static VERSION: &'static str = "1.5.3"; // Should be the same major version as in the manifest
+static VERSION: &'static str = "1.6.3"; // Should be the same major version as in the manifest
 
 fn main() {
     let out_dir_var = env::var("OUT_DIR").unwrap();

@@ -19,7 +19,7 @@ bson = "> 0.1.0"
 
 [dependencies.mongoc-sys]
 path    = "mongoc-sys"
-version = "1.5.3"
+version = "1.6.3"
 
 [dev-dependencies]
 chrono = "> 0.2.0"
