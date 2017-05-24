@@ -2,7 +2,7 @@
 //!
 //! It aims to provide a safe and ergonomic Rust interface which handles all the gnarly usage details of
 //! the C driver for you. We use Rust's type system to make sure that we can only use the
-//! underlying C driver in the recommended way specified in it's [documentation](http://api.mongodb.org/c/current/).
+//! underlying C driver in the recommended way specified in it's [documentation](http://mongoc.org/libmongoc/current/).
 //!
 //! To get started create a client pool wrapped in an `Arc` so we can share it between threads. Then pop a client from it
 //! you can use to perform operations.

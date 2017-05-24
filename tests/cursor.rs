@@ -32,7 +32,7 @@ fn test_cursor() {
 
 #[test]
 fn test_tailing_cursor() {
-    // See: http://api.mongodb.org/c/1.1.8/cursors.html#tailable
+    // See: http://mongoc.org/libmongoc/current/cursors.html#tailable
 
     let uri      = Uri::new("mongodb://localhost:27017/").unwrap();
     let pool     = Arc::new(ClientPool::new(uri, None));

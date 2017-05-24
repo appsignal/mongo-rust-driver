@@ -36,7 +36,7 @@ impl Bsonc {
 
         // Inner will be null if there was an error converting the data.
         // We're assuming the bson crate works and therefore assert here.
-        // See: http://api.mongodb.org/libbson/current/bson_new_from_data.html
+        // See: http://mongoc.org/libbson/current/bson_new_from_data.html
         assert!(!inner.is_null());
 
         Ok(Bsonc{ inner: inner })
@@ -46,7 +46,7 @@ impl Bsonc {
         assert!(!self.inner.is_null());
 
         // This pointer should not be modified or freed
-        // See: http://api.mongodb.org/libbson/current/bson_get_data.html
+        // See: http://mongoc.org/libbson/current/bson_get_data.html
         let data_ptr = unsafe { bindings::bson_get_data(self.inner) };
         assert!(!data_ptr.is_null());
 

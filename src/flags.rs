@@ -29,7 +29,7 @@ pub trait FlagsValue {
 }
 
 /// Flags for insert operations
-/// See: http://api.mongodb.org/c/current/mongoc_insert_flags_t.html
+/// See: http://mongoc.org/libmongoc/current/mongoc_insert_flags_t.html
 #[derive(Eq,PartialEq,Ord,PartialOrd)]
 pub enum InsertFlag {
     ContinueOnError,
@@ -52,7 +52,7 @@ impl FlagsValue for Flags<InsertFlag> {
 }
 
 /// Flags for query operations
-/// See: http://api.mongodb.org/c/current/mongoc_query_flags_t.html
+/// See: http://mongoc.org/libmongoc/current/mongoc_query_flags_t.html
 #[derive(Eq,PartialEq,Ord,PartialOrd)]
 pub enum QueryFlag {
     TailableCursor,
@@ -85,7 +85,7 @@ impl FlagsValue for Flags<QueryFlag> {
 }
 
 /// Flags for deletion operations
-/// See: http://api.mongodb.org/c/1.1.8/mongoc_remove_flags_t.html
+/// See: http://mongoc.org/libmongoc/current/mongoc_remove_flags_t.html
 #[derive(Eq,PartialEq,Ord,PartialOrd)]
 pub enum RemoveFlag {
     SingleRemove
@@ -102,7 +102,7 @@ impl FlagsValue for Flags<RemoveFlag> {
 }
 
 /// Flags for update operations
-/// See: http://api.mongodb.org/c/current/mongoc_update_flags_t.html
+/// See: http://mongoc.org/libmongoc/current/mongoc_update_flags_t.html
 #[derive(Eq,PartialEq,Ord,PartialOrd)]
 pub enum UpdateFlag {
     Upsert,
