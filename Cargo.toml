@@ -13,9 +13,9 @@ license       = "MIT/Apache-2.0"
 name = "tests"
 
 [dependencies]
-libc = "> 0.2.0"
-log  = "> 0.3.0"
-bson = "> 0.1.0"
+libc = "0.2"
+log  = "0.3"
+bson = "0.8"
 
 [dependencies.mongoc-sys]
 path    = "mongoc-sys"
