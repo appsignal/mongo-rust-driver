@@ -1,3 +1,6 @@
+# 0.7.0
+* Use symver version requirements for dependencies
+
 # 0.6.0
 * Upgrade Mongo C driver to 1.6.3
 
