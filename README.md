@@ -10,7 +10,7 @@ Bson encoding and decoding is handled by the [bson crate](https://github.com/zon
 
 The API should still be considered experimental, but I'm not expecting changes at the moment.
 
-[Documentation](https://docs.rs/mongo_driver/0.6.0/mongo_driver/)
+[Documentation](https://docs.rs/mongo_driver/)
 
 ## Compatibility
 
