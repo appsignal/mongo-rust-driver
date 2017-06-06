@@ -1,3 +1,6 @@
+# 0.7.1
+* Fix docs link
+
 # 0.7.0
 * Use symver version requirements for dependencies
 
