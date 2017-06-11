@@ -37,7 +37,7 @@ fn main() {
         // Configure and install
         let mut command = Command::new("sh");
         command.arg("configure");
-        command.arg("--enable-ssl=yes");
+        command.arg("--enable-ssl=openssl");
         command.arg("--enable-sasl=no");
         command.arg("--enable-static=yes");
         command.arg("--enable-shared=no");
