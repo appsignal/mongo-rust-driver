@@ -401,3 +401,5 @@ impl Drop for Uri {
         }
     }
 }
+
+unsafe impl Send for Uri { }
