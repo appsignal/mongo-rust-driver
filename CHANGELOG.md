@@ -1,3 +1,7 @@
+# 0.7.2
+* Always use openssl on MacOS
+* Make uri send and sync
+
 # 0.7.1
 * Fix docs link
 
