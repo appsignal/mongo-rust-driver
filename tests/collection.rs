@@ -93,13 +93,13 @@ fn test_mutation_and_finding() {
 
     // Find the documents
     assert_eq!(
-        collection.find(&document, None).unwrap().next().unwrap().unwrap().get("key_1").unwrap().to_json(),
-        bson::Bson::String("Value 1".to_string()).to_json()
+        collection.find(&document, None).unwrap().next().unwrap().unwrap().get("key_1").unwrap(),
+        &bson::Bson::String("Value 1".to_string())
     );
     let found_document = collection.find(&second_document, None).unwrap().next().unwrap().unwrap();
     assert_eq!(
-        found_document.get("key_1").unwrap().to_json(),
-        bson::Bson::String("Value 3".to_string()).to_json()
+        found_document.get("key_1").unwrap(),
+        &bson::Bson::String("Value 3".to_string())
     );
 
     // Update the second document
@@ -112,8 +112,8 @@ fn test_mutation_and_finding() {
     };
     let mut found_document = collection.find(&query_after_update, None).unwrap().next().unwrap().unwrap();
     assert_eq!(
-        found_document.get("key_1").unwrap().to_json(),
-        bson::Bson::String("Value 4".to_string()).to_json()
+        found_document.get("key_1").unwrap(),
+        &bson::Bson::String("Value 4".to_string())
     );
 
     // Save the second document
@@ -123,8 +123,8 @@ fn test_mutation_and_finding() {
     // Reload and check value
     let found_document = collection.find(&found_document, None).unwrap().next().unwrap().unwrap();
     assert_eq!(
-        found_document.get("key_1").unwrap().to_json(),
-        bson::Bson::String("Value 5".to_string()).to_json()
+        found_document.get("key_1").unwrap(),
+        &bson::Bson::String("Value 5".to_string())
     );
 
     // Remove one
