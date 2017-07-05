@@ -60,8 +60,8 @@ fn test_insert_remove_replace_update_extended() {
         assert!(result.is_ok());
 
         assert_eq!(
-            result.ok().unwrap().get("nInserted").unwrap().to_json(),
-            bson::Bson::I32(5).to_json()
+            result.ok().unwrap().get("nInserted").unwrap(),
+            &bson::Bson::I32(5)
         );
         assert_eq!(5, collection.count(&doc!{}, None).unwrap());
     }
@@ -86,14 +86,14 @@ fn test_insert_remove_replace_update_extended() {
         assert!(result.is_ok());
 
         assert_eq!(
-            result.ok().unwrap().get("nModified").unwrap().to_json(),
-            bson::Bson::I32(1).to_json()
+            result.ok().unwrap().get("nModified").unwrap(),
+            &bson::Bson::I32(1)
         );
 
         let first_document = collection.find(&doc!{}, None).unwrap().next().unwrap().unwrap();
         assert_eq!(
-            first_document.get("key_1").unwrap().to_json(),
-            bson::Bson::String("Value update".to_string()).to_json()
+            first_document.get("key_1").unwrap(),
+            &bson::Bson::String("Value update".to_string())
         );
         // Make sure it was updated, it should have other keys
         assert!(first_document.get("key_2").is_some());
@@ -113,15 +113,15 @@ fn test_insert_remove_replace_update_extended() {
         assert!(result.is_ok());
 
         assert_eq!(
-            result.ok().unwrap().get("nModified").unwrap().to_json(),
-            bson::Bson::I32(4).to_json()
+            result.ok().unwrap().get("nModified").unwrap(),
+            &bson::Bson::I32(4)
         );
 
         collection.find(&doc!{}, None).unwrap().next().unwrap().unwrap();
         let second_document = collection.find(&doc!{}, None).unwrap().next().unwrap().unwrap();
         assert_eq!(
-            second_document.get("key_1").unwrap().to_json(),
-            bson::Bson::String("Value update".to_string()).to_json()
+            second_document.get("key_1").unwrap(),
+            &bson::Bson::String("Value update".to_string())
         );
         // Make sure it was updated, it should have other keys
         assert!(second_document.get("key_2").is_some());
@@ -142,14 +142,14 @@ fn test_insert_remove_replace_update_extended() {
         assert!(result.is_ok());
 
         assert_eq!(
-            result.ok().unwrap().get("nModified").unwrap().to_json(),
-            bson::Bson::I32(1).to_json()
+            result.ok().unwrap().get("nModified").unwrap(),
+            &bson::Bson::I32(1)
         );
 
         let first_document = collection.find(&doc!{}, None).unwrap().next().unwrap().unwrap();
         assert_eq!(
-            first_document.get("key_1").unwrap().to_json(),
-            bson::Bson::String("Value replace".to_string()).to_json()
+            first_document.get("key_1").unwrap(),
+            &bson::Bson::String("Value replace".to_string())
         );
         // Make sure it was replaced, it shouldn't have other keys
         assert!(first_document.get("key_2").is_none());
@@ -164,8 +164,8 @@ fn test_insert_remove_replace_update_extended() {
         assert!(result.is_ok());
 
         assert_eq!(
-            result.ok().unwrap().get("nRemoved").unwrap().to_json(),
-            bson::Bson::I32(1).to_json()
+            result.ok().unwrap().get("nRemoved").unwrap(),
+            &bson::Bson::I32(1)
         );
         assert_eq!(4, collection.count(&query, None).unwrap());
     }
@@ -179,8 +179,8 @@ fn test_insert_remove_replace_update_extended() {
         assert!(result.is_ok());
 
         assert_eq!(
-            result.ok().unwrap().get("nRemoved").unwrap().to_json(),
-            bson::Bson::I32(4).to_json()
+            result.ok().unwrap().get("nRemoved").unwrap(),
+            &bson::Bson::I32(4)
         );
         assert_eq!(0, collection.count(&query, None).unwrap());
     }
