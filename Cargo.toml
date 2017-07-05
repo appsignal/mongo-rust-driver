@@ -1,13 +1,19 @@
 [package]
 name          = "mongo_driver"
-version       = "0.7.2"
+version       = "0.8.0"
 authors       = ["Thijs Cadier <thijs@appsignal.com>"]
 description   = "Mongo Rust driver built on top of the Mongo C driver"
 readme        = "README.md"
 documentation = "https://docs.rs/mongo_driver/"
 repository    = "https://github.com/thijsc/mongo-rust-driver"
 keywords      = ["mongodb", "database"]
+categories    = ["database", "api-bindings"]
 license       = "MIT/Apache-2.0"
+
+[badges]
+travis-ci = { repository = "thijsc/mongo-rust-driver" }
+is-it-maintained-issue-resolution = { repository = "thijsc/mongo-rust-driver" }
+is-it-maintained-open-issues = { repository = "thijsc/mongo-rust-driver" }
 
 [[test]]
 name = "tests"
@@ -19,7 +25,7 @@ bson = "^0.9"
 
 [dependencies.mongoc-sys]
 path    = "mongoc-sys"
-version = "1.6.3"
+version = "1.6.3-1"
 
 [dev-dependencies]
 chrono = "^0.4"
