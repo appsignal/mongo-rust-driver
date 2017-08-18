@@ -14,13 +14,25 @@ The API should still be considered experimental, but I'm not expecting changes a
 
 ## Compatibility
 
-The driver currently only builds on Unix, tested on Mac Os X and Linux so far. It's compatible with MongoDB 2.4 up to 3.4 and
-has full replica set and SSL support.
+The driver currently only builds on Unix, tested on Mac Os X and Linux so far. It's compatible with MongoDB 2.6 up to 3.4 and has full replica set and SSL support.
 
 ## Installation
 
 If you have any trouble installing the crate (linking openssl can be
 tricky) please check out the [installation instructions for the C driver](http://mongoc.org/libmongoc/current/installing.html).
+
+To build on Mac install OpenSSL 1.1:
+
+```
+brew install openssl@1.1
+```
+
+Export these env vars the before you make a clean build:
+
+```
+export LDFLAGS="-L/usr/local/opt/openssl@1.1/lib"
+export CPPFLAGS="-I/usr/local/opt/openssl@1.1/include"
+``
 
 ## Logging
 

@@ -146,7 +146,9 @@ pub enum MongoErrorCode {
     ScramProtocolError,
     QueryCommandNotFound,
     QueryNotTailable,
-    Unknown
+    WriteConcernError,
+    DuplicateKey,
+    Unknown(u32)
 }
 
 impl BsoncError {
@@ -222,7 +224,9 @@ impl BsoncError {
             bindings::MONGOC_ERROR_SCRAM_PROTOCOL_ERROR          => MongoErrorCode::ScramProtocolError,
             bindings::MONGOC_ERROR_QUERY_COMMAND_NOT_FOUND       => MongoErrorCode::QueryCommandNotFound,
             bindings::MONGOC_ERROR_QUERY_NOT_TAILABLE            => MongoErrorCode::QueryNotTailable,
-            _                                                    => MongoErrorCode::Unknown
+            bindings::MONGOC_ERROR_WRITE_CONCERN_ERROR           => MongoErrorCode::WriteConcernError,
+            bindings::MONGOC_ERROR_DUPLICATE_KEY                 => MongoErrorCode::DuplicateKey,
+            code                                                 => MongoErrorCode::Unknown(code)
         }
     }
 
