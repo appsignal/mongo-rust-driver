@@ -3,7 +3,7 @@ use std::fmt;
 use std::borrow::Cow;
 use std::ffi::CStr;
 
-use bson::{DecoderError,EncoderError,ValueAccessError};
+use bson::{DecoderError,EncoderError,ValueAccessError,Document};
 
 use mongoc::bindings;
 
@@ -256,7 +256,7 @@ impl fmt::Debug for BsoncError {
 
 impl fmt::Display for BsoncError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{}", &self.get_message())
+        write!(f, "{}", self.get_message())
     }
 }
 
@@ -296,6 +296,27 @@ impl error::Error for InvalidParamsError {
 impl From<InvalidParamsError> for MongoError {
     fn from(error: InvalidParamsError) -> MongoError {
         MongoError::InvalidParams(error)
+    }
+}
+
+/// Error returned by a bulk operation that includes a report in the reply document.
+#[derive(Debug)]
+pub struct BulkOperationError {
+    /// Returned error
+    pub error: MongoError,
+    /// Error report
+    pub reply: Document
+}
+
+impl fmt::Display for BulkOperationError {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "Bulk operation error {}", self.error)
+    }
+}
+
+impl error::Error for BulkOperationError {
+    fn description(&self) -> &str {
+        "Error returned by a bulk operation that includes a report in the reply document"
     }
 }
 
