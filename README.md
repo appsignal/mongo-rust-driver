@@ -32,7 +32,7 @@ Export these env vars the before you make a clean build:
 ```
 export LDFLAGS="-L/usr/local/opt/openssl@1.1/lib"
 export CPPFLAGS="-I/usr/local/opt/openssl@1.1/include"
-``
+```
 
 ## Logging
 
