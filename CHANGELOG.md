@@ -1,3 +1,9 @@
+# 0.9.0
+* Add WriteConcernError and DuplicateKey to error
+* Add error code for unknown error
+* Bulk operation result which includes reply
+* Don't use natural option in tail anymore
+
 # 0.8.0
 * Upgrade bson dependency to 0.9
 
