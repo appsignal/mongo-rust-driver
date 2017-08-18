@@ -706,14 +706,9 @@ impl<'a> Collection<'a> {
         find_options: Option<CommandAndFindOptions>,
         tail_options: Option<TailOptions>
     ) -> TailingCursor<'a> {
-        let query_with_options = doc! {
-            "$query" => query,
-            "$natural" => 1
-        };
-
         TailingCursor::new(
             self,
-            query_with_options,
+            query,
             find_options.unwrap_or(CommandAndFindOptions::default()),
             tail_options.unwrap_or(TailOptions::default())
         )

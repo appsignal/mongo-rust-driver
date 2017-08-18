@@ -50,7 +50,7 @@ fn test_tailing_cursor() {
 
     // Try to tail on a normal collection
     let failing_cursor = normal_collection.tail(doc!{}, None, None);
-    let failing_result = failing_cursor.into_iter().next().unwrap();
+    let failing_result = failing_cursor.into_iter().next().expect("Nothing in iterator");
     assert!(failing_result.is_err());
 
     let document = doc! { "key_1" => "Value 1" };
@@ -75,7 +75,7 @@ fn test_tailing_cursor() {
     });
 
     // Wait for the thread to boot up
-    thread::sleep(Duration::from_millis(250));
+    thread::sleep(Duration::from_secs(1));
 
     // Insert some more documents into the collection
     for _ in 0..25 {
@@ -85,5 +85,5 @@ fn test_tailing_cursor() {
     // See if they appeared while iterating the cursor
     // The for loop returns whenever we get more than
     // 15 results.
-    assert_eq!(25, guard.join().unwrap());
+    assert_eq!(25, guard.join().expect("Thread failed"));
 }
