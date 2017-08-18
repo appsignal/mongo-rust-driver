@@ -148,7 +148,7 @@ pub enum MongoErrorCode {
     QueryNotTailable,
     WriteConcernError,
     DuplicateKey,
-    Unknown
+    Unknown(u32)
 }
 
 impl BsoncError {
@@ -226,7 +226,7 @@ impl BsoncError {
             bindings::MONGOC_ERROR_QUERY_NOT_TAILABLE            => MongoErrorCode::QueryNotTailable,
             bindings::MONGOC_ERROR_WRITE_CONCERN_ERROR           => MongoErrorCode::WriteConcernError,
             bindings::MONGOC_ERROR_DUPLICATE_KEY                 => MongoErrorCode::DuplicateKey,
-            _                                                    => MongoErrorCode::Unknown
+            code                                                 => MongoErrorCode::Unknown(code)
         }
     }
 
