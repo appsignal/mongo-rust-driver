@@ -12,7 +12,7 @@ use bsonc;
 
 use bson::Document;
 
-use super::Result;
+use super::{Result,BulkOperationResult,BulkOperationError};
 use super::CommandAndFindOptions;
 use super::{BsoncError,InvalidParamsError};
 use super::bsonc::Bsonc;
@@ -873,7 +873,7 @@ impl<'a>BulkOperation<'a> {
     /// multiple times.
     ///
     /// Returns a document with an overview of the bulk operation if successfull.
-    pub fn execute(self) -> Result<Document> {
+    pub fn execute(self) -> BulkOperationResult<Document> {
         // Bsonc to store the reply
         let mut reply = Bsonc::new();
         // Empty error that might be filled
@@ -889,13 +889,15 @@ impl<'a>BulkOperation<'a> {
             )
         };
 
+        let document = match reply.as_document() {
+            Ok(document) => document,
+            Err(error)   => return Err(BulkOperationError{error: error.into(), reply: doc!{}})
+        };
+
         if return_value != 0 {
-            match reply.as_document() {
-                Ok(document) => return Ok(document),
-                Err(error)   => return Err(error.into())
-            }
+            Ok(document)
         } else {
-            Err(error.into())
+            Err(BulkOperationError{error: error.into(), reply: document})
         }
     }
 }

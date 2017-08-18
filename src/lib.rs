@@ -49,10 +49,13 @@ pub mod write_concern;
 mod bsonc;
 mod error;
 
-pub use error::{MongoError,BsoncError,MongoErrorDomain,MongoErrorCode,InvalidParamsError};
+pub use error::{MongoError,BsoncError,MongoErrorDomain,MongoErrorCode,InvalidParamsError,BulkOperationError};
 
 /// Result that's used in all functions that perform operations on the database.
 pub type Result<T> = result::Result<T, MongoError>;
+
+/// Result that's used in bulk operations.
+pub type BulkOperationResult<T> = result::Result<T, BulkOperationError>;
 
 static MONGOC_INIT: Once = ONCE_INIT;
 
