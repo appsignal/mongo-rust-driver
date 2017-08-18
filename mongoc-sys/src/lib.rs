@@ -249,4 +249,6 @@ pub mod bindings {
     pub const MONGOC_ERROR_QUERY_COMMAND_NOT_FOUND: ::libc::c_uint = 59;
     pub const MONGOC_ERROR_QUERY_NOT_TAILABLE: ::libc::c_uint = 13051;
     pub const MONGOC_ERROR_PROTOCOL_ERROR: ::libc::c_uint = 17;
+    pub const MONGOC_ERROR_WRITE_CONCERN_ERROR: ::libc::c_uint = 64;
+    pub const MONGOC_ERROR_DUPLICATE_KEY: ::libc::c_uint = 11000;
 }
