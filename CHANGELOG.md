@@ -1,3 +1,6 @@
+# 0.8.0
+* Upgrade bson dependency to 0.9
+
 # 0.7.2
 * Always use openssl on MacOS
 * Make uri send and sync
