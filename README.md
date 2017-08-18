@@ -40,6 +40,24 @@ All internal logging by mongoc is redirected to the macros in the [log
 crate](http://doc.rust-lang.org/log/log/index.html). See the `log` docs
 to configure output in your application.
 
+## SSL test
+
+There is a test included to connect to a replica set over SSL. To skip
+this test:
+
+```
+SKIP_SSL_CONNECTION_TESTS=true cargo test
+```
+
+To run this tests fill these environment variables with something appropiate to
+connect to a replica set:
+
+```
+MONGO_RUST_DRIVER_SSL_URI
+MONGO_RUST_DRIVER_SSL_PEM_FILE
+MONGO_RUST_DRIVER_SSL_CA_FILE
+```
+
 ## Examples
 
 See the tests directory for examples of how to use the driver.
