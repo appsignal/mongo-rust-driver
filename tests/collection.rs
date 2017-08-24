@@ -72,9 +72,9 @@ fn test_mutation_and_finding() {
 
     let document = doc! {
         "key_1" => "Value 1",
-        "key_2" => "kācaṃ śaknomyattum; nopahinasti mām."
+        "key_2" => "kācaṃ śaknomyattum; nopahinasti mām. \u{0}"
     };
-    assert!(collection.insert(&document, None).is_ok());
+    collection.insert(&document, None).expect("Could not insert document");
     {
         let found_document = collection.find(&document, None).unwrap().next().unwrap().unwrap();
         assert_eq!(
@@ -83,7 +83,7 @@ fn test_mutation_and_finding() {
         );
         assert_eq!(
             found_document.get("key_2").unwrap(),
-            &bson::Bson::String("kācaṃ śaknomyattum; nopahinasti mām.".to_string())
+            &bson::Bson::String("kācaṃ śaknomyattum; nopahinasti mām. \u{0}".to_string())
         );
     }
 
