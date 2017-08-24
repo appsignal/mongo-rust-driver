@@ -30,6 +30,31 @@ fn test_basics() {
     let document = doc! {"key_1" => "Value 1"};
     bulk_operation.insert(&document).unwrap();
     assert!(bulk_operation.execute().is_ok());
+
+    let first_document = collection.find(&doc!{}, None).unwrap().next().unwrap().unwrap();
+    assert_eq!(
+        first_document.get("key_1").unwrap(),
+        &bson::Bson::String("Value 1".to_string())
+    );
+}
+
+#[test]
+fn test_utf8() {
+    let uri            = Uri::new("mongodb://localhost:27017/").unwrap();
+    let pool           = ClientPool::new(uri, None);
+    let client         = pool.pop();
+    let collection     = client.get_collection("rust_driver_test", "bulk_operation_utf8");
+    let bulk_operation = collection.create_bulk_operation(None);
+
+    let document = doc! {"key_1" => "kācaṃ śaknomyattum; nopahinasti mām."};
+    bulk_operation.insert(&document).unwrap();
+    assert!(bulk_operation.execute().is_ok());
+
+    let first_document = collection.find(&doc!{}, None).unwrap().next().unwrap().unwrap();
+    assert_eq!(
+        first_document.get("key_1").unwrap(),
+        &bson::Bson::String("kācaṃ śaknomyattum; nopahinasti mām.".to_string())
+    );
 }
 
 #[test]
