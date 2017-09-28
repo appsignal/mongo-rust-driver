@@ -2,10 +2,10 @@ use std::env;
 use std::path::Path;
 use std::process::Command;
 
-static VERSION: &'static str = "1.6.3"; // Should be the same major version as in the manifest
+static VERSION: &'static str = "1.8.0"; // Should be the same major version as in the manifest
 
 fn main() {
-    let out_dir_var = env::var("OUT_DIR").unwrap();
+    let out_dir_var = env::var("OUT_DIR").expect("No out dir");
     let out_dir = format!("{}/{}", out_dir_var, VERSION);
     let driver_src_path = format!("mongo-c-driver-{}", VERSION);
 
@@ -21,7 +21,7 @@ fn main() {
                                     .arg("-L") // Follow redirects
                                     .arg(url)
                                     .status()
-                                    .unwrap()
+                                    .expect("Could not run curl")
                                     .success());
 
         let archive_name = format!(
@@ -31,7 +31,7 @@ fn main() {
         assert!(Command::new("tar").arg("xzf")
                                    .arg(&archive_name)
                                    .status()
-                                   .unwrap()
+                                   .expect("Could not run tar")
                                    .success());
 
         // Configure and install
@@ -44,6 +44,8 @@ fn main() {
         command.arg("--enable-shm-counters=no");
         command.arg("--with-libbson=bundled");
         command.arg("--with-pic=yes");
+        command.arg("--with-snappy=no");
+        command.arg("--with-zlib=no");
         command.arg(format!("--prefix={}", &out_dir));
         command.current_dir(&driver_src_path);
 
@@ -57,18 +59,18 @@ fn main() {
             command.arg(format!("--build={}", target));
         }
 
-        assert!(command.status().unwrap().success());
+        assert!(command.status().expect("Could not run configure").success());
         assert!(Command::new("make").
                          current_dir(&driver_src_path).
                          env("CFLAGS", "-DMONGOC_TRACE").
                          status().
-                         unwrap().
+                         expect("Could not run make").
                          success());
         assert!(Command::new("make").
                          arg("install").
                          current_dir(&driver_src_path).
                          status().
-                         unwrap().
+                         expect("Could not run make install").
                          success());
     }
 

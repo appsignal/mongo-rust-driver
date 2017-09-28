@@ -1,3 +1,6 @@
+# 0.10.0
+* Initial upgrade to mongo c driver 1.8.0, no support for new features yet
+
 # 0.9.0
 * Add WriteConcernError and DuplicateKey to error
 * Add error code for unknown error
