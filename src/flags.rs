@@ -36,6 +36,8 @@ pub enum InsertFlag {
     NoValidate
 }
 
+const INSERT_FLAG_NO_VALIDATE: u32 = 1 | 31; // MONGOC_INSERT_NO_VALIDATE defined in macro
+
 impl FlagsValue for Flags<InsertFlag> {
     fn flags(&self) -> u32 {
         if self.flags.is_empty() {
@@ -44,7 +46,7 @@ impl FlagsValue for Flags<InsertFlag> {
             self.flags.iter().fold(0, { |flags, flag|
                 flags | match flag {
                     &InsertFlag::ContinueOnError => bindings::MONGOC_INSERT_CONTINUE_ON_ERROR,
-                    &InsertFlag::NoValidate      => 1 | 31  // MONGOC_INSERT_NO_VALIDATE defined in macro
+                    &InsertFlag::NoValidate      => INSERT_FLAG_NO_VALIDATE
                 }
             })
         }
