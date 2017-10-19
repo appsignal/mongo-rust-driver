@@ -13,3 +13,6 @@ exclude     = ["mongo-c-driver-*"]
 [dependencies]
 libc        = "0.2"
 openssl-sys = "0.9"
+
+[build-dependencies]
+semver = "0.8"
