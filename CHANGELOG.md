@@ -1,3 +1,7 @@
+# 0.11.0
+* Update bson dependency to 0.10
+* Use installed libmongoc if it right version is present on the system (thanks to Matrix-Zhang)
+
 # 0.10.0
 * Initial upgrade to mongo c driver 1.8.0, no support for new features yet
 

@@ -4,26 +4,30 @@ use std::env;
 use std::path::Path;
 use std::process::Command;
 
-static VERSION: &'static str = "1.8.0"; // Should be the same major version as in the manifest
 
 fn main() {
+    let mongoc_version = env!("CARGO_PKG_VERSION")
+        .split('-')
+        .next()
+        .expect("Crate version is not valid");
+
     if pkg_config::Config::new()
-        .atleast_version(VERSION)
+        .atleast_version(mongoc_version)
         .statik(true)
         .probe("libmongoc-1.0")
         .is_err()
     {
         let out_dir_var = env::var("OUT_DIR").expect("No out dir");
-        let out_dir = format!("{}/{}", out_dir_var, VERSION);
-        let driver_src_path = format!("mongo-c-driver-{}", VERSION);
+        let out_dir = format!("{}/{}", out_dir_var, mongoc_version);
+        let driver_src_path = format!("mongo-c-driver-{}", mongoc_version);
 
         let libmongoc_path = Path::new(&out_dir).join("lib/libmongoc-1.0.a");
         if !libmongoc_path.exists() {
             // Download and extract driver archive
             let url = format!(
                 "https://github.com/mongodb/mongo-c-driver/releases/download/{}/mongo-c-driver-{}.tar.gz",
-                VERSION,
-                VERSION
+                mongoc_version,
+                mongoc_version
             );
             assert!(
                 Command::new("curl").arg("-O") // Save to disk
@@ -34,7 +38,7 @@ fn main() {
                                     .success()
             );
 
-            let archive_name = format!("mongo-c-driver-{}.tar.gz", VERSION);
+            let archive_name = format!("mongo-c-driver-{}.tar.gz", mongoc_version);
             assert!(
                 Command::new("tar")
                     .arg("xzf")
