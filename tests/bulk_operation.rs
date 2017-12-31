@@ -58,6 +58,26 @@ fn test_utf8() {
 }
 
 #[test]
+fn test_utf8_invalid() {
+    let uri            = Uri::new("mongodb://localhost:27017/").unwrap();
+    let pool           = ClientPool::new(uri, None);
+    let client         = pool.pop();
+    let collection     = client.get_collection("rust_driver_test", "bulk_operation_utf8_invalid");
+    let bulk_operation = collection.create_bulk_operation(None);
+
+    let value = unsafe { String::from_utf8_unchecked(b"\xF0\xA4\xAD\xA2".to_vec()) };
+    let document = doc! {"key_1" => value};
+    bulk_operation.insert(&document).unwrap();
+    assert!(bulk_operation.execute().is_ok());
+
+    let first_document = collection.find(&doc!{}, None).unwrap().next().unwrap().unwrap();
+    assert_eq!(
+        first_document.get("key_1").unwrap(),
+        &bson::Bson::String("𤭢".to_string())
+    );
+}
+
+#[test]
 fn test_insert_remove_replace_update_extended() {
     if env::var("SKIP_EXTENDED_BULK_OPERATION_TESTS") == Ok("true".to_string()) {
         return
