@@ -65,7 +65,8 @@ fn test_utf8_invalid() {
     let collection     = client.get_collection("rust_driver_test", "bulk_operation_utf8_invalid");
     let bulk_operation = collection.create_bulk_operation(None);
 
-    let value = unsafe { String::from_utf8_unchecked(vec![10, 11, 12, 13, 14, 15, 16, 17]) };
+    let bytes = b"\x80\xae".to_vec();
+    let value = unsafe { String::from_utf8_unchecked(bytes) };
     let document = doc! {"key_1" => value};
     bulk_operation.insert(&document).unwrap();
     assert!(bulk_operation.execute().is_ok());
