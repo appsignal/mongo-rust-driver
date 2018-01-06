@@ -1,6 +1,6 @@
 [package]
 name        = "mongoc-sys"
-version     = "1.8.0-0"
+version     = "1.8.2-0"
 description = "Sys package with installer and bindings for mongoc"
 authors     = ["Thijs Cadier <thijs@appsignal.com>"]
 build       = "build.rs"
