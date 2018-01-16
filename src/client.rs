@@ -305,7 +305,7 @@ impl<'a> Client<'a> {
         };
 
         if success == 1 {
-            match reply.as_document() {
+            match reply.as_document_utf8_lossy() {
                 Ok(document) => return Ok(document),
                 Err(error)   => return Err(error.into())
             }

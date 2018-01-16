@@ -342,7 +342,7 @@ impl<'a> Collection<'a> {
         };
 
         if success == 1 {
-            match reply.as_document() {
+            match reply.as_document_utf8_lossy() {
                 Ok(document) => return Ok(document),
                 Err(error)   => return Err(error.into())
             }
@@ -547,7 +547,7 @@ impl<'a> Collection<'a> {
         };
 
         if success == 1 {
-            match reply.as_document() {
+            match reply.as_document_utf8_lossy() {
                 Ok(document) => return Ok(document),
                 Err(error)   => return Err(error.into())
             }
@@ -884,7 +884,7 @@ impl<'a>BulkOperation<'a> {
             )
         };
 
-        let document = match reply.as_document() {
+        let document = match reply.as_document_utf8_lossy() {
             Ok(document) => document,
             Err(error)   => return Err(BulkOperationError{error: error.into(), reply: doc!{}})
         };

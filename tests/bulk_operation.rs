@@ -9,7 +9,9 @@ fn test_execute_error() {
     let uri            = Uri::new("mongodb://localhost:27017/").unwrap();
     let pool           = ClientPool::new(uri, None);
     let client         = pool.pop();
-    let collection     = client.get_collection("rust_driver_test", "bulk_operation_error");
+    let mut collection     = client.get_collection("rust_driver_test", "bulk_operation_error");
+    collection.drop().unwrap_or(());
+
     let bulk_operation = collection.create_bulk_operation(None);
 
     let result = bulk_operation.execute();
@@ -24,11 +26,13 @@ fn test_basics() {
     let uri            = Uri::new("mongodb://localhost:27017/").unwrap();
     let pool           = ClientPool::new(uri, None);
     let client         = pool.pop();
-    let collection     = client.get_collection("rust_driver_test", "bulk_operation_basics");
+    let mut collection     = client.get_collection("rust_driver_test", "bulk_operation_basics");
+    collection.drop().unwrap_or(());
+
     let bulk_operation = collection.create_bulk_operation(None);
 
     let document = doc! {"key_1" => "Value 1"};
-    bulk_operation.insert(&document).unwrap();
+    bulk_operation.insert(&document).expect("Could not insert");
     assert!(bulk_operation.execute().is_ok());
 
     let first_document = collection.find(&doc!{}, None).unwrap().next().unwrap().unwrap();
@@ -43,38 +47,19 @@ fn test_utf8() {
     let uri            = Uri::new("mongodb://localhost:27017/").unwrap();
     let pool           = ClientPool::new(uri, None);
     let client         = pool.pop();
-    let collection     = client.get_collection("rust_driver_test", "bulk_operation_utf8");
+    let mut collection     = client.get_collection("rust_driver_test", "bulk_operation_utf8");
+    collection.drop().unwrap_or(());
+
     let bulk_operation = collection.create_bulk_operation(None);
 
     let document = doc! {"key_1" => "kācaṃ śaknomyattum; nopahinasti mām."};
-    bulk_operation.insert(&document).unwrap();
+    bulk_operation.insert(&document).expect("Could not insert");
     assert!(bulk_operation.execute().is_ok());
 
     let first_document = collection.find(&doc!{}, None).unwrap().next().unwrap().unwrap();
     assert_eq!(
         first_document.get("key_1").unwrap(),
         &bson::Bson::String("kācaṃ śaknomyattum; nopahinasti mām.".to_string())
-    );
-}
-
-#[test]
-fn test_utf8_invalid() {
-    let uri            = Uri::new("mongodb://localhost:27017/").unwrap();
-    let pool           = ClientPool::new(uri, None);
-    let client         = pool.pop();
-    let collection     = client.get_collection("rust_driver_test", "bulk_operation_utf8_invalid");
-    let bulk_operation = collection.create_bulk_operation(None);
-
-    let bytes = b"\x80\xae".to_vec();
-    let value = unsafe { String::from_utf8_unchecked(bytes) };
-    let document = doc! {"key_1" => value};
-    bulk_operation.insert(&document).unwrap();
-    assert!(bulk_operation.execute().is_ok());
-
-    let first_document = collection.find(&doc!{}, None).unwrap().next().unwrap().unwrap();
-    assert_eq!(
-        first_document.get("key_1").unwrap(),
-        &bson::Bson::String("𤭢".to_string())
     );
 }
 
