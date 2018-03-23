@@ -102,6 +102,7 @@ pub mod bindings {
         pub fn mongoc_database_get_collection(database: *mut mongoc_database_t, name: *const ::libc::c_char) -> *mut mongoc_collection_t;
         pub fn mongoc_database_get_name(database: *mut mongoc_database_t) -> *const ::libc::c_char;
         pub fn mongoc_database_destroy(database: *mut mongoc_database_t) -> ();
+        pub fn mongoc_database_has_collection(database: *mut mongoc_database_t, name: *const ::libc::c_char, error: *mut bson_error_t) -> ::libc::boolean_t;
     }
 
     // Client

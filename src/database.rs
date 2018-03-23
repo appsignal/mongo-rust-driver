@@ -189,6 +189,31 @@ impl<'a> Database<'a> {
         };
         String::from_utf8_lossy(cstr.to_bytes())
     }
+
+    /// Create a new collection in this database.
+    pub fn has_collection<S: Into<Vec<u8>>>(
+        &self,
+        name:    S
+    ) -> Result<bool> {
+        let mut error = BsoncError::empty();
+        let name_cstring = CString::new(name).unwrap();
+
+        let has_collection = unsafe {
+            bindings::mongoc_database_has_collection(
+                self.inner,
+                name_cstring.as_ptr(),
+                error.mut_inner())
+        };
+
+        if error.is_empty() {
+            Ok(match has_collection{
+                0 => false,
+                _ => true
+            })
+        } else {
+            Err(error.into())
+        }
+    }
 }
 
 impl<'a> Drop for Database<'a> {
