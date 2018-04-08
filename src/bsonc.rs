@@ -42,6 +42,7 @@ impl Bsonc {
         Ok(Bsonc{ inner: inner })
     }
 
+    /// Decode a bson from the C side to a document
     pub fn as_document(&self) -> Result<bson::Document> {
         assert!(!self.inner.is_null());
 
@@ -60,6 +61,28 @@ impl Bsonc {
         };
 
         let document = try!(bson::decode_document(&mut slice));
+        Ok(document)
+    }
+
+    /// Decode a bson from the C side to a document with lossy UTF-8 decoding
+    pub fn as_document_utf8_lossy(&self) -> Result<bson::Document> {
+        assert!(!self.inner.is_null());
+
+        // This pointer should not be modified or freed
+        // See: http://mongoc.org/libbson/current/bson_get_data.html
+        let data_ptr = unsafe { bindings::bson_get_data(self.inner) };
+        assert!(!data_ptr.is_null());
+
+        let data_len = unsafe {
+            let bson = *self.inner;
+            bson.len
+        } as usize;
+
+        let mut slice = unsafe {
+            slice::from_raw_parts(data_ptr, data_len)
+        };
+
+        let document = try!(bson::decode_document_utf8_lossy(&mut slice));
         Ok(document)
     }
 
@@ -106,7 +129,18 @@ mod tests {
         let bsonc = super::Bsonc::from_document(&document).unwrap();
 
         let decoded = bsonc.as_document().unwrap();
-        assert!(decoded.contains_key("key"));
+        assert_eq!(decoded.get_str("key").unwrap(), "value");
+    }
+
+    #[test]
+    fn test_bsonc_from_and_as_document_invalid_utf8() {
+        let bytes = b"\x80\xae".to_vec();
+        let value = unsafe { String::from_utf8_unchecked(bytes) };
+        let document = doc! { "key" => value };
+        let bsonc = super::Bsonc::from_document(&document).unwrap();
+
+        let decoded = bsonc.as_document_utf8_lossy().unwrap();
+        assert_eq!(decoded.get_str("key").unwrap(), "��");
     }
 
     #[test]

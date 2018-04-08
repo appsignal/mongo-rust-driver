@@ -1,3 +1,13 @@
+# 0.12.0
+* Upgrade libmongoc to 1.8.2
+* Update bson dependency to 0.11
+* Parse MongoDB server responses with lossy UTF-8 decoding to work
+  around https://jira.mongodb.org/browse/SERVER-24007
+
+# 0.11.0
+* Update bson dependency to 0.10
+* Use installed libmongoc if it right version is present on the system (thanks to Matrix-Zhang)
+
 # 0.10.0
 * Initial upgrade to mongo c driver 1.8.0, no support for new features yet
 
