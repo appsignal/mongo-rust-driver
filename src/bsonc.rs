@@ -28,10 +28,7 @@ impl Bsonc {
         try!(bson::encode_document(&mut buffer, document));
 
         let inner = unsafe {
-            bindings::bson_new_from_data(
-                buffer[..].as_ptr(),
-                buffer.len() as u64
-            )
+            bindings::bson_new_from_data(buffer[..].as_ptr(), (buffer.len() as u32).into())
         };
 
         // Inner will be null if there was an error converting the data.

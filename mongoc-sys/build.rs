@@ -1,9 +1,34 @@
 extern crate pkg_config;
+#[cfg(target_env = "msvc")]
+extern crate vcpkg;
 
 use std::env;
 use std::path::Path;
 use std::process::Command;
 
+#[cfg(target_env = "msvc")]
+fn probe_libmongoc_pkg_config(_: &str) -> bool {
+    false
+}
+
+#[cfg(target_env = "msvc")]
+fn probe_libmongoc_vcpkg() -> bool {
+    vcpkg::probe_package("libmongoc-1.0").is_ok()
+}
+
+#[cfg(not(target_env = "msvc"))]
+fn probe_libmongoc_pkg_config(version: &str) -> bool {
+    pkg_config::Config::new()
+        .atleast_version(version)
+        .statik(true)
+        .probe("libmongoc-1.0")
+        .is_ok()
+}
+
+#[cfg(not(target_env = "msvc"))]
+fn probe_libmongoc_vcpkg() -> bool {
+    false
+}
 
 fn main() {
     let mongoc_version = env!("CARGO_PKG_VERSION")
@@ -11,12 +36,7 @@ fn main() {
         .next()
         .expect("Crate version is not valid");
 
-    if pkg_config::Config::new()
-        .atleast_version(mongoc_version)
-        .statik(true)
-        .probe("libmongoc-1.0")
-        .is_err()
-    {
+    if !probe_libmongoc_pkg_config(mongoc_version) && !probe_libmongoc_vcpkg() {
         let out_dir_var = env::var("OUT_DIR").expect("No out dir");
         let out_dir = format!("{}/{}", out_dir_var, mongoc_version);
         let driver_src_path = format!("mongo-c-driver-{}", mongoc_version);
