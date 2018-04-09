@@ -2,7 +2,7 @@ use std::ffi::CStr;
 use std::ptr;
 use std::fmt;
 use std::slice;
-use libc::c_void;
+use libc::{c_uint, c_void};
 
 use mongoc::bindings;
 use bson;
@@ -27,12 +27,8 @@ impl Bsonc {
         let mut buffer = Vec::new();
         try!(bson::encode_document(&mut buffer, document));
 
-        let inner = unsafe {
-            bindings::bson_new_from_data(
-                buffer[..].as_ptr(),
-                buffer.len() as u64
-            )
-        };
+        let inner =
+            unsafe { bindings::bson_new_from_data(buffer[..].as_ptr(), buffer.len() as c_uint) };
 
         // Inner will be null if there was an error converting the data.
         // We're assuming the bson crate works and therefore assert here.
