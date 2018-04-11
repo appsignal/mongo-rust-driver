@@ -3,3 +3,4 @@ Cargo.lock
 mongoc-sys/mongo-c-driver*
 ssl_env_vars
 .idea/
+.DS_Store
