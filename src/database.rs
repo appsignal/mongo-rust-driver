@@ -48,6 +48,8 @@ impl<'a> Database<'a> {
 
     /// Execute a command on the database.
     /// This is performed lazily and therefore requires calling `next` on the resulting cursor.
+    /// Results are returned in batches as per the mongoc driver.
+    /// To get the next batch: https://docs.mongodb.com/manual/reference/command/getMore/
     pub fn command(
         &'a self,
         command: Document,
