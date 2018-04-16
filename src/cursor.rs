@@ -4,9 +4,10 @@ use std::iter::Iterator;
 use std::ptr;
 use std::thread;
 use std::time::Duration;
+use std::collections::VecDeque;
 
 use mongoc::bindings;
-use bson::{Bson,Document,oid};
+use bson::{self,Bson,Document,oid};
 
 use super::BsoncError;
 use super::bsonc;
@@ -15,6 +16,7 @@ use super::database::Database;
 use super::flags::QueryFlag;
 use super::collection::{Collection,TailOptions};
 use super::CommandAndFindOptions;
+use super::MongoError::ValueAccessError;
 
 use super::Result;
 
@@ -250,4 +252,122 @@ impl<'a> Iterator for TailingCursor<'a> {
             self.cursor      = None;
         }
     }
+}
+
+type DocArray = VecDeque<Document>;
+type CursorId = i64;
+
+pub struct BatchCursor<'a> {
+    cursor:     Cursor<'a>,
+    db:         &'a Database<'a>,
+    coll_name:  String,
+    cursor_id:  Option<CursorId>,
+    documents:  Option<DocArray>
+
+}
+
+impl<'a> BatchCursor<'a> {
+    pub fn new(
+        cursor: Cursor<'a>,
+        db: &'a Database<'a>,
+        coll_name: String
+    ) -> BatchCursor<'a> {
+        BatchCursor {
+            cursor,
+            db,
+            coll_name,
+            cursor_id: None,
+            documents: None
+        }
+    }
+
+    fn get_cursor_next(&mut self) -> Option<Result<Document>> {
+        let item_opt = self.cursor.next();
+        if let Some(item_res) = item_opt {
+            if let Ok(item) = item_res {
+                let docs_ret = batch_to_array(item);
+                if let Ok(docs) = docs_ret {
+                    self.documents = docs.0;
+                    if docs.1.is_some() {self.cursor_id = docs.1}
+                    let res = self.get_next_doc();
+                    if res.is_some() { return res; }
+                } else {
+                    return Some(Err(docs_ret.err().unwrap()));
+                }
+            }
+        }
+        None
+    }
+
+    fn get_next_doc(&mut self) -> Option<Result<Document>> {
+        if let Some(ref mut docs) = self.documents {
+            if docs.len() > 0 {
+                let doc = docs.pop_front().unwrap();
+                return Some(Ok(doc));
+            }
+        }
+        None
+    }
+}
+
+#[derive(Deserialize, Debug)]
+#[serde(rename_all = "camelCase")]
+struct CommandSimpleBatch {
+    id: CursorId,
+    first_batch: Option<DocArray>,
+    next_batch: Option<DocArray>
+}
+#[derive(Deserialize, Debug)]
+struct CommandSimpleResult {
+    cursor: CommandSimpleBatch
+}
+
+fn batch_to_array(doc: Document) -> Result<(Option<DocArray>,Option<CursorId>)> {
+    let doc_result: Result<CommandSimpleResult> =
+        bson::from_bson(Bson::Document(doc.clone()))
+            .map_err(|err|
+                {
+                    error!("cannot read batch from db: {}", err);
+                    ValueAccessError(bson::ValueAccessError::NotPresent)
+                });
+
+    trace!("input: {}, result: {:?}", doc, doc_result);
+
+    doc_result.map(|v| {
+        if v.cursor.first_batch.is_some() {return (v.cursor.first_batch, Some(v.cursor.id));}
+        if v.cursor.next_batch.is_some() {return (v.cursor.next_batch, Some(v.cursor.id));}
+        (None,None)
+    })
+}
+
+impl<'a> Iterator for BatchCursor<'a> {
+    type Item = Result<Document>;
+
+    fn next(&mut self) -> Option<Self::Item> {
+
+        // (1) try the local document buffer
+        let res = self.get_next_doc();
+        if res.is_some() {return res;}
+
+        // (2) try next()
+        let res = self.get_cursor_next();
+        if res.is_some() {return res;}
+
+        // (3) try getMore
+        if let Some(cid) = self.cursor_id {
+            let command = doc! {
+                "getMore": cid as i64,
+                "collection": self.coll_name.clone()
+                };
+            let cur_result = self.db.command(command, None);
+            if let Ok(cur) = cur_result {
+                self.cursor = cur;
+                let res = self.get_cursor_next();
+                if res.is_some() { return res; }
+            }
+        }
+        None
+    }
+
+
 }

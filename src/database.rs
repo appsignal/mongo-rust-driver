@@ -16,6 +16,7 @@ use super::collection;
 use super::collection::Collection;
 use super::cursor;
 use super::cursor::Cursor;
+use super::cursor::BatchCursor;
 use super::read_prefs::ReadPrefs;
 use flags::FlagsValue;
 
@@ -23,6 +24,17 @@ use flags::FlagsValue;
 pub enum CreatedBy<'a> {
     BorrowedClient(&'a Client<'a>),
     OwnedClient(Client<'a>)
+}
+
+#[doc(hidden)]
+fn get_coll_name_from_doc(doc: &Document) -> Result<String> {
+    const VALID_COMMANDS: &'static [&'static str] = &["find", "aggregate"];
+    for s in VALID_COMMANDS {
+        if let Ok(val) = doc.get_str(s) {
+            return Ok(val.to_owned())
+        }
+    }
+    Err(InvalidParamsError.into())
 }
 
 /// Provides access to a MongoDB database.
@@ -58,8 +70,8 @@ impl<'a> Database<'a> {
         assert!(!self.inner.is_null());
 
         let default_options = CommandAndFindOptions::default();
-        let options         = options.unwrap_or(&default_options);
-        let fields_bsonc    = options.fields_bsonc();
+        let options = options.unwrap_or(&default_options);
+        let fields_bsonc = options.fields_bsonc();
 
         let cursor_ptr = unsafe {
             bindings::mongoc_database_command(
@@ -88,6 +100,23 @@ impl<'a> Database<'a> {
             cursor::CreatedBy::Database(self),
             cursor_ptr,
             fields_bsonc
+        ))
+    }
+
+    /// Execute a command on the database.
+    /// Automates the process of getting the next batch from getMore
+    /// and parses the batch so only the result documents are returned.
+    /// I am unsure of the best practices of when to use this or the CRUD function.
+    pub fn command_batch(
+        &'a self,
+        command: Document,
+        options: Option<&CommandAndFindOptions>
+    ) -> Result<BatchCursor<'a>> {
+        let coll_name = get_coll_name_from_doc(&command)?;
+        Ok(BatchCursor::new(
+            self.command(command, options)?,
+            self,
+            coll_name
         ))
     }
 
@@ -225,4 +254,14 @@ impl<'a> Drop for Database<'a> {
             bindings::mongoc_database_destroy(self.inner);
         }
     }
+}
+
+#[test]
+fn test_get_coll_name_from_doc() {
+    let command = doc! {"find": "cursor_items"};
+    assert_eq!("cursor_items", get_coll_name_from_doc(&command).unwrap());
+    let command = doc! {"aggregate": "cursor_items"};
+    assert_eq!("cursor_items", get_coll_name_from_doc(&command).unwrap());
+    let command = doc! {"error": "cursor_items"};
+    assert!(get_coll_name_from_doc(&command).is_err());
 }
