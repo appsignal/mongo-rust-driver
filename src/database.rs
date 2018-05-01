@@ -28,7 +28,7 @@ pub enum CreatedBy<'a> {
 
 #[doc(hidden)]
 fn get_coll_name_from_doc(doc: &Document) -> Result<String> {
-    const VALID_COMMANDS: &'static [&'static str] = &["find", "aggregate"];
+    const VALID_COMMANDS: &'static [&'static str] = &["find", "aggregate", "listIndexes"];
     for s in VALID_COMMANDS {
         if let Ok(val) = doc.get_str(s) {
             return Ok(val.to_owned())
