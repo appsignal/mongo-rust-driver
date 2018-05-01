@@ -257,6 +257,15 @@ impl<'a> Iterator for TailingCursor<'a> {
 type DocArray = VecDeque<Document>;
 type CursorId = i64;
 
+/// BatchCursor let's you iterate though batches of results
+/// in a natural way without having to deal parsing each block
+/// of 100 results from mongo.
+///
+/// Specifically, this cursor hides the complexity of having to call
+/// https://docs.mongodb.com/manual/reference/command/getMore/.  This
+/// allows you to have much cleaner user code.  Only commands which
+/// return batches work with this cursor.  For example, find, aggregate,
+/// and listIndexes all return batches.
 pub struct BatchCursor<'a> {
     cursor:     Cursor<'a>,
     db:         &'a Database<'a>,
@@ -281,6 +290,8 @@ impl<'a> BatchCursor<'a> {
         }
     }
 
+    // internal function to reach the next batch of results from the mongo cursor
+    // and store them in the DocArray buffer
     fn get_cursor_next(&mut self) -> Option<Result<Document>> {
         let item_opt = self.cursor.next();
         if let Some(item_res) = item_opt {
@@ -299,6 +310,8 @@ impl<'a> BatchCursor<'a> {
         None
     }
 
+    // internal function for pulling the next document from the documents buffer.
+    // this is the in memory representation of the documents we receive from each batch (DocArray)
     fn get_next_doc(&mut self) -> Option<Result<Document>> {
         if let Some(ref mut docs) = self.documents {
             if docs.len() > 0 {
@@ -344,7 +357,6 @@ impl<'a> Iterator for BatchCursor<'a> {
     type Item = Result<Document>;
 
     fn next(&mut self) -> Option<Self::Item> {
-
         // (1) try the local document buffer
         let res = self.get_next_doc();
         if res.is_some() {return res;}
@@ -368,6 +380,4 @@ impl<'a> Iterator for BatchCursor<'a> {
         }
         None
     }
-
-
 }

@@ -26,7 +26,6 @@ pub enum CreatedBy<'a> {
     OwnedClient(Client<'a>)
 }
 
-#[doc(hidden)]
 fn get_coll_name_from_doc(doc: &Document) -> Result<String> {
     const VALID_COMMANDS: &'static [&'static str] = &["find", "aggregate", "listIndexes"];
     for s in VALID_COMMANDS {
@@ -60,8 +59,8 @@ impl<'a> Database<'a> {
 
     /// Execute a command on the database.
     /// This is performed lazily and therefore requires calling `next` on the resulting cursor.
-    /// Results are returned in batches as per the mongoc driver.
-    /// To get the next batch: https://docs.mongodb.com/manual/reference/command/getMore/
+    /// if your are using a command like find or aggregate `command_batch` is likely
+    /// more convenient for you.
     pub fn command(
         &'a self,
         command: Document,
@@ -103,7 +102,7 @@ impl<'a> Database<'a> {
         ))
     }
 
-    /// Execute a command on the database.
+    /// Execute a command on the database and returns a `BatchCursor`
     /// Automates the process of getting the next batch from getMore
     /// and parses the batch so only the result documents are returned.
     /// I am unsure of the best practices of when to use this or the CRUD function.
@@ -221,7 +220,7 @@ impl<'a> Database<'a> {
         String::from_utf8_lossy(cstr.to_bytes())
     }
 
-    /// Create a new collection in this database.
+    /// This function checks to see if a collection exists on the MongoDB server within database.
     pub fn has_collection<S: Into<Vec<u8>>>(
         &self,
         name:    S

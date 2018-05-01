@@ -35,7 +35,6 @@ extern crate log;
 extern crate serde_derive;
 extern crate serde;
 
-
 use std::ffi::CStr;
 use std::ptr;
 use std::result;

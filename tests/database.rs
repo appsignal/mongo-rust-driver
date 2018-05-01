@@ -54,3 +54,20 @@ fn test_create_collection() {
 
     assert_eq!("created_collection", collection.get_name().to_mut());
 }
+
+#[test]
+fn test_has_collection() {
+    let uri      = Uri::new("mongodb://localhost:27017/").unwrap();
+    let pool     = ClientPool::new(uri, None);
+    let client   = pool.pop();
+    let database = client.get_database("rust_test");
+    database.get_collection("created_collection").drop().unwrap_or(());
+
+    let collection = database.create_collection(
+        "created_collection",
+        None
+    ).unwrap();
+
+    assert_eq!("created_collection", collection.get_name().to_mut());
+    assert!(database.has_collection("created_collection").unwrap());
+}
