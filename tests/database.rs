@@ -63,11 +63,15 @@ fn test_has_collection() {
     let database = client.get_database("rust_test");
     database.get_collection("created_collection").drop().unwrap_or(());
 
+    const COLL_NAME: &'static str = "created_collection";
+
     let collection = database.create_collection(
-        "created_collection",
+        COLL_NAME,
         None
     ).unwrap();
 
-    assert_eq!("created_collection", collection.get_name().to_mut());
-    assert!(database.has_collection("created_collection").unwrap());
+    assert_eq!(COLL_NAME, collection.get_name().to_mut());
+    assert!(database.has_collection(COLL_NAME).unwrap());
+
+    database.command_simple(doc!{ "drop": COLL_NAME}, None).unwrap();
 }
