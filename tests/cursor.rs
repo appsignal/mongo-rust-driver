@@ -87,3 +87,49 @@ fn test_tailing_cursor() {
     // 15 results.
     assert_eq!(25, guard.join().expect("Thread failed"));
 }
+
+#[test]
+fn test_batch_cursor() {
+    let uri      = Uri::new("mongodb://localhost:27017/").unwrap();
+    let pool     = Arc::new(ClientPool::new(uri, None));
+    let client   = pool.pop();
+    let database = client.get_database("rust_test");
+
+    const TEST_COLLECTION_NAME: &str = "test_batch_cursor";
+    const NUM_TO_TEST: i32 = 10000;
+
+    let mut collection = database.get_collection(TEST_COLLECTION_NAME);
+    if database.has_collection(TEST_COLLECTION_NAME).unwrap() {
+        collection.drop().unwrap();  // if prev test failed the old collection may still exist
+    }
+
+    // add test rows.  need many to exercise the batches
+    {
+        let bulk_operation = collection.create_bulk_operation(None);
+
+        for i in 0..NUM_TO_TEST {
+            bulk_operation.insert(&doc!{"key": i}).unwrap();
+        }
+
+        let result = bulk_operation.execute();
+        assert!(result.is_ok());
+
+        assert_eq!(
+            result.ok().unwrap().get("nInserted").unwrap(), // why is this an i32?
+            &bson::Bson::I32(NUM_TO_TEST)
+        );
+        assert_eq!(NUM_TO_TEST as i64, collection.count(&doc!{}, None).unwrap());
+    }
+
+    {
+        let cur = database.command_batch(doc!{"find":TEST_COLLECTION_NAME},None);
+        let mut count = 0;
+        for doc in cur.unwrap() {
+            count += 1;
+            println!("doc: {:?}", doc );
+        }
+        assert_eq!(count,NUM_TO_TEST);
+    }
+
+    collection.drop().unwrap();
+}

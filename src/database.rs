@@ -16,6 +16,7 @@ use super::collection;
 use super::collection::Collection;
 use super::cursor;
 use super::cursor::Cursor;
+use super::cursor::BatchCursor;
 use super::read_prefs::ReadPrefs;
 use flags::FlagsValue;
 
@@ -23,6 +24,16 @@ use flags::FlagsValue;
 pub enum CreatedBy<'a> {
     BorrowedClient(&'a Client<'a>),
     OwnedClient(Client<'a>)
+}
+
+fn get_coll_name_from_doc(doc: &Document) -> Result<String> {
+    const VALID_COMMANDS: &'static [&'static str] = &["find", "aggregate", "listIndexes"];
+    for s in VALID_COMMANDS {
+        if let Ok(val) = doc.get_str(s) {
+            return Ok(val.to_owned())
+        }
+    }
+    Err(InvalidParamsError.into())
 }
 
 /// Provides access to a MongoDB database.
@@ -48,6 +59,8 @@ impl<'a> Database<'a> {
 
     /// Execute a command on the database.
     /// This is performed lazily and therefore requires calling `next` on the resulting cursor.
+    /// if your are using a command like find or aggregate `command_batch` is likely
+    /// more convenient for you.
     pub fn command(
         &'a self,
         command: Document,
@@ -56,8 +69,8 @@ impl<'a> Database<'a> {
         assert!(!self.inner.is_null());
 
         let default_options = CommandAndFindOptions::default();
-        let options         = options.unwrap_or(&default_options);
-        let fields_bsonc    = options.fields_bsonc();
+        let options = options.unwrap_or(&default_options);
+        let fields_bsonc = options.fields_bsonc();
 
         let cursor_ptr = unsafe {
             bindings::mongoc_database_command(
@@ -86,6 +99,23 @@ impl<'a> Database<'a> {
             cursor::CreatedBy::Database(self),
             cursor_ptr,
             fields_bsonc
+        ))
+    }
+
+    /// Execute a command on the database and returns a `BatchCursor`
+    /// Automates the process of getting the next batch from getMore
+    /// and parses the batch so only the result documents are returned.
+    /// I am unsure of the best practices of when to use this or the CRUD function.
+    pub fn command_batch(
+        &'a self,
+        command: Document,
+        options: Option<&CommandAndFindOptions>
+    ) -> Result<BatchCursor<'a>> {
+        let coll_name = get_coll_name_from_doc(&command)?;
+        Ok(BatchCursor::new(
+            self.command(command, options)?,
+            self,
+            coll_name
         ))
     }
 
@@ -189,6 +219,31 @@ impl<'a> Database<'a> {
         };
         String::from_utf8_lossy(cstr.to_bytes())
     }
+
+    /// This function checks to see if a collection exists on the MongoDB server within database.
+    pub fn has_collection<S: Into<Vec<u8>>>(
+        &self,
+        name:    S
+    ) -> Result<bool> {
+        let mut error = BsoncError::empty();
+        let name_cstring = CString::new(name).unwrap();
+
+        let has_collection = unsafe {
+            bindings::mongoc_database_has_collection(
+                self.inner,
+                name_cstring.as_ptr(),
+                error.mut_inner())
+        };
+
+        if error.is_empty() {
+            Ok(match has_collection{
+                0 => false,
+                _ => true
+            })
+        } else {
+            Err(error.into())
+        }
+    }
 }
 
 impl<'a> Drop for Database<'a> {
@@ -198,4 +253,14 @@ impl<'a> Drop for Database<'a> {
             bindings::mongoc_database_destroy(self.inner);
         }
     }
+}
+
+#[test]
+fn test_get_coll_name_from_doc() {
+    let command = doc! {"find": "cursor_items"};
+    assert_eq!("cursor_items", get_coll_name_from_doc(&command).unwrap());
+    let command = doc! {"aggregate": "cursor_items"};
+    assert_eq!("cursor_items", get_coll_name_from_doc(&command).unwrap());
+    let command = doc! {"error": "cursor_items"};
+    assert!(get_coll_name_from_doc(&command).is_err());
 }

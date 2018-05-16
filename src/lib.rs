@@ -31,6 +31,10 @@ extern crate bson;
 #[macro_use]
 extern crate log;
 
+#[macro_use]
+extern crate serde_derive;
+extern crate serde;
+
 use std::ffi::CStr;
 use std::ptr;
 use std::result;
