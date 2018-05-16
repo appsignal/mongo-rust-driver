@@ -272,7 +272,6 @@ pub struct BatchCursor<'a> {
     coll_name:  String,
     cursor_id:  Option<CursorId>,
     documents:  Option<DocArray>
-
 }
 
 impl<'a> BatchCursor<'a> {
@@ -338,13 +337,10 @@ struct CommandSimpleResult {
 fn batch_to_array(doc: Document) -> Result<(Option<DocArray>,Option<CursorId>)> {
     let doc_result: Result<CommandSimpleResult> =
         bson::from_bson(Bson::Document(doc.clone()))
-            .map_err(|err|
-                {
-                    error!("cannot read batch from db: {}", err);
-                    ValueAccessError(bson::ValueAccessError::NotPresent)
-                });
-
-    trace!("input: {}, result: {:?}", doc, doc_result);
+            .map_err(|err| {
+                error!("cannot read batch from db: {}", err);
+                ValueAccessError(bson::ValueAccessError::NotPresent)
+            });
 
     doc_result.map(|v| {
         if v.cursor.first_batch.is_some() {return (v.cursor.first_batch, Some(v.cursor.id));}
