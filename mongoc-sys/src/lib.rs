@@ -131,6 +131,7 @@ pub mod bindings {
         pub fn mongoc_client_get_collection(client: *mut mongoc_client_t, db: *const ::libc::c_char, collection: *const ::libc::c_char) -> *mut mongoc_collection_t;
         pub fn mongoc_client_get_database(client: *mut mongoc_client_t, name: *const ::libc::c_char) -> *mut mongoc_database_t;
         pub fn mongoc_client_get_server_status(client: *mut mongoc_client_t, read_prefs: *mut mongoc_read_prefs_t, reply: *mut bson_t, error: *mut bson_error_t) -> u8;
+        pub fn mongoc_client_read_command_with_opts(client: *mut mongoc_client_t, db: *const ::libc::c_char, command: *const bson_t, read_prefs: *const mongoc_read_prefs_t, opts: *const bson_t, reply: *mut bson_t, error: *mut bson_error_t ) -> u8;
     }
 
     // Collection

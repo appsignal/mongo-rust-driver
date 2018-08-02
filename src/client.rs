@@ -313,6 +313,48 @@ impl<'a> Client<'a> {
             Err(error.into())
         }
     }
+
+    pub fn read_command_with_opts<S: Into<Vec<u8>>>(&self,
+                                  db: S,
+                                  command: &Document,
+                                  read_prefs: Option<&ReadPrefs>,
+                                  options: Option<&Document>) -> Result<Document> {
+        assert!(!self.inner.is_null());
+
+        let db_cstring = CString::new(db)?;
+
+        // Bsonc to store the reply
+        let mut reply = Bsonc::new();
+        // Empty error that might be filled
+        let mut error = BsoncError::empty();
+
+        let success = unsafe {
+            bindings::mongoc_client_read_command_with_opts(
+                self.inner,
+                db_cstring.as_ptr(),
+                Bsonc::from_document(command)?.inner(),
+                match read_prefs {
+                    Some(ref prefs) => prefs.inner(),
+                    None => ptr::null()
+                },
+                match options {
+                    Some(ref o) => Bsonc::from_document(o)?.inner(),
+                    None => ptr::null()
+                },
+                reply.mut_inner(),
+                error.mut_inner()
+            )
+        };
+
+        if success == 1 {
+            match reply.as_document_utf8_lossy() {
+                Ok(document) => return Ok(document),
+                Err(error)   => return Err(error.into())
+            }
+        } else {
+            Err(error.into())
+        }
+    }
 }
 
 impl<'a> Drop for Client<'a> {
