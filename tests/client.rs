@@ -82,6 +82,29 @@ fn test_get_server_status() {
 }
 
 #[test]
+fn test_read_command_with_opts() {
+    let uri = Uri::new("mongodb://localhost:27017/").unwrap();
+    let pool = ClientPool::new(uri, None);
+    let client = pool.pop();
+    let db_name = "rust_driver_test";
+    let coll_name = "test_read_command_with_opts";
+    let collection = client.get_collection(db_name, coll_name);
+
+    let document = doc! {
+        "key_1" => "Value 1",
+        "key_2" => "kācaṃ śaknomyattum; nopahinasti mām. \u{0}"
+    };
+    collection.insert(&document, None).expect("Could not insert document");
+
+    let status = client.read_command_with_opts(db_name,
+                                               &doc!{"collStats": coll_name},
+                                               None, None).unwrap();
+
+    assert!(status.contains_key("totalIndexSize"));
+    assert!(status.contains_key("storageSize"));
+}
+
+#[test]
 fn test_new_pool_with_ssl_options() {
     let uri = Uri::new("mongodb://localhost:27017/").unwrap();
     let ssl_options = SslOptions::new(
