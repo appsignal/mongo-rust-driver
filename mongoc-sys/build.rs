@@ -138,5 +138,5 @@ fn main() {
     #[cfg(target_env = "msvc")]
     win(mongoc_version);
     #[cfg(not(target_env = "msvc"))]
-    lib(mongoc_version);
+    lin(mongoc_version);
 }
