@@ -30,7 +30,7 @@ impl Bsonc {
         let inner = unsafe {
             bindings::bson_new_from_data(
                 buffer[..].as_ptr(),
-                buffer.len() as u32
+                buffer.len() as libc::c_ulong
             )
         };
 
