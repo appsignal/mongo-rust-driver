@@ -8,7 +8,7 @@ use std::process::Command;
 
 
 #[cfg(not(target_env = "msvc"))]
-fn main_linux(mongoc_version: &str) {
+fn lin(mongoc_version: &str) {
     if pkg_config::Config::new()
         .atleast_version(mongoc_version)
         .statik(true)
@@ -98,22 +98,34 @@ fn main_linux(mongoc_version: &str) {
 }
 
 #[cfg(target_env = "msvc")]
-fn main_win(mongoc_version: &str) {
+fn win(mongoc_version: &str) {
     use vcpkg;
+
+    let mongo_lib = "mongoc-1.0";
+    let bson_lib = "bson-1.0";
+
     if vcpkg::Config::new()
         .emit_includes(true)
         .probe("mongo-c-driver")
         .is_ok()
     {
-        let out_dir_var = env::var("OUT_DIR").expect("No out dir");
-        let out_dir = format!("{}/{}", out_dir_var, mongoc_version);
-
-//        println!("found");
-
         // Output to Cargo
-        println!("cargo:rustc-link-search=native={}/lib", &out_dir);
-        println!("cargo:rustc-link-lib=bson");
-        println!("cargo:rustc-link-lib=mongo-c-driver");
+        println!("cargo:rustc-link-lib={}", bson_lib);
+        println!("cargo:rustc-link-lib={}", mongo_lib);
+    } else {
+        if let Ok(bson_dir_lib) = env::var("MONGO_LIB") {
+            if let Ok(mongo_dir_lib) = env::var("BSON_LIB") {
+                println!("cargo:rustc-link-search=native={}", bson_dir_lib);
+                println!("cargo:rustc-link-lib=dylib={}", bson_lib);
+                println!("cargo:rustc-link-search=native={}", mongo_dir_lib);
+                println!("cargo:rustc-link-lib=dylib={}", mongo_lib);
+
+            } else {
+                panic!("please define BSON_LIB to {}.lib, \n for example set BSON_LIB=C:\\vcpkg\\packages\\libbson_x64-windows", bson_lib);
+            }
+        } else {
+            panic!("please define MONGO_LIB to {}.lib, \n for example set MONGO_LIB=C:\\vcpkg\\packages\\mongo-c-driver_x64-windows\\lib", mongo_lib);
+        }
     }
 }
 
@@ -124,7 +136,7 @@ fn main() {
         .expect("Crate version is not valid");
 
     #[cfg(target_env = "msvc")]
-    main_win(mongoc_version);
+    win(mongoc_version);
     #[cfg(not(target_env = "msvc"))]
-    main_linux(mongoc_version);
+    lib(mongoc_version);
 }
