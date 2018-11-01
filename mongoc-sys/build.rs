@@ -121,7 +121,7 @@ fn win(mongoc_version: &str) {
                 println!("cargo:rustc-link-lib=dylib={}", mongo_lib);
 
             } else {
-                panic!("please define BSON_LIB to {}.lib, \n for example set BSON_LIB=C:\\vcpkg\\packages\\libbson_x64-windows", bson_lib);
+                panic!("please define BSON_LIB to {}.lib, \n for example set BSON_LIB=C:\\vcpkg\\packages\\libbson_x64-windows\\lib", bson_lib);
             }
         } else {
             panic!("please define MONGO_LIB to {}.lib, \n for example set MONGO_LIB=C:\\vcpkg\\packages\\mongo-c-driver_x64-windows\\lib", mongo_lib);
