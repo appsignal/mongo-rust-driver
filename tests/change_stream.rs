@@ -31,7 +31,7 @@ fn test_change_stream() {
         counter
     });
 
-    thread::sleep(Duration::from_millis(1));
+    thread::sleep(Duration::from_millis(100));
 
     for i in 0..15 {
         collection.insert(&doc! {"c": i}, None).unwrap();
