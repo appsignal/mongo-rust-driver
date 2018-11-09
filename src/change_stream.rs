@@ -60,7 +60,6 @@ impl<'a> Iterator for ChangeStream<'a> {
 
         if success == 1 {
             assert!(!bson_ptr.is_null());
-            println!("DEBUG0: {}", success);
 
             let bsonc = Bsonc::from_ptr(bson_ptr);
             match bsonc.as_document() {
@@ -68,9 +67,7 @@ impl<'a> Iterator for ChangeStream<'a> {
                 Err(error)   => return Some(Err(error.into()))
             }
         } else {
-            println!("DEBUG1: {}", success);
             let error = self.error();
-            println!("DEBUG11: {}", error);
             if error.is_empty() {
                 None
             } else {
