@@ -183,7 +183,8 @@ pub mod bindings {
     // Change stream
     pub enum mongoc_change_stream_t {}
     extern "C" {
-        pub fn mongoc_change_stream_next(stream: *mut mongoc_change_stream_t, bson: *mut *const bson_t) -> ();
+        pub fn mongoc_change_stream_next(stream: *mut mongoc_change_stream_t, bson: *mut *const bson_t) -> u8;
+        pub fn mongoc_change_stream_error_document(stream: *mut mongoc_change_stream_t, error: *mut bson_error_t, reply: *mut bson_t) -> u8;
         pub fn mongoc_change_stream_destroy(stream: *mut mongoc_change_stream_t) -> ();
     }
 
