@@ -49,6 +49,7 @@ pub mod database;
 pub mod flags;
 pub mod read_prefs;
 pub mod write_concern;
+pub mod change_stream;
 
 mod bsonc;
 mod error;

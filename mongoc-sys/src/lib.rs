@@ -154,6 +154,7 @@ pub mod bindings {
         pub fn mongoc_collection_save(collection: *mut mongoc_collection_t, document: *const bson_t, write_concern: *const mongoc_write_concern_t, error: *mut bson_error_t) -> u8;
         pub fn mongoc_collection_update(collection: *mut mongoc_collection_t, flags: mongoc_update_flags_t, selector: *const bson_t, update: *const bson_t, write_concern: *const mongoc_write_concern_t, error: *mut bson_error_t) -> u8;
         pub fn mongoc_collection_destroy(collection: *mut mongoc_collection_t) -> ();
+        pub fn mongoc_collection_watch(collection: *mut mongoc_collection_t, pipeline: *const bson_t, opts: *const bson_t) -> *mut mongoc_change_stream_t;
     }
 
     // Cursor
@@ -177,6 +178,13 @@ pub mod bindings {
         pub fn mongoc_bulk_operation_update_one(bulk: *mut mongoc_bulk_operation_t, selector: *const bson_t, document: *const bson_t, upsert: u8) -> ();
         pub fn mongoc_bulk_operation_execute(bulk: *mut mongoc_bulk_operation_t, reply: *mut bson_t, error: *mut bson_error_t) -> uint32_t;
         pub fn mongoc_bulk_operation_destroy(bulk: *mut mongoc_bulk_operation_t) -> ();
+    }
+
+    // Change stream
+    pub enum mongoc_change_stream_t {}
+    extern "C" {
+        pub fn mongoc_change_stream_next(stream: *mut mongoc_change_stream_t, bson: *mut *const bson_t) -> ();
+        pub fn mongoc_change_stream_destroy(stream: *mut mongoc_change_stream_t) -> ();
     }
 
     // Flags
@@ -253,4 +261,5 @@ pub mod bindings {
     pub const MONGOC_ERROR_PROTOCOL_ERROR: ::libc::c_uint = 17;
     pub const MONGOC_ERROR_WRITE_CONCERN_ERROR: ::libc::c_uint = 64;
     pub const MONGOC_ERROR_DUPLICATE_KEY: ::libc::c_uint = 11000;
+    pub const MONGOC_ERROR_CHANGE_STREAM_NO_RESUME_TOKEN: ::libc::c_uint = 11001;
 }

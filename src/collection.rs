@@ -23,6 +23,7 @@ use super::database::Database;
 use super::flags::{Flags,FlagsValue,InsertFlag,QueryFlag,RemoveFlag,UpdateFlag};
 use super::write_concern::WriteConcern;
 use super::read_prefs::ReadPrefs;
+use super::change_stream::ChangeStream;
 
 #[doc(hidden)]
 pub enum CreatedBy<'a> {
@@ -713,6 +714,25 @@ impl<'a> Collection<'a> {
             tail_options.unwrap_or(TailOptions::default())
         )
     }
+
+    /// This function returns change stream for the colletion
+    ///
+    /// Returns `Stream` struct
+    pub fn watch(
+        &'a self,
+        pipeline: &Document,
+        opts: &Document
+    ) -> Result<ChangeStream<'a>> {
+        let inner = unsafe {
+            bindings::mongoc_collection_watch(
+                self.inner,
+                try!(Bsonc::from_document(&pipeline)).inner(),
+                try!(Bsonc::from_document(&opts)).inner()
+            )
+        };
+        Ok(ChangeStream::new(self, inner))
+    }
+
 }
 
 impl<'a> Drop for Collection<'a> {
