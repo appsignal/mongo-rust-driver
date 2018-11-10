@@ -715,24 +715,30 @@ impl<'a> Collection<'a> {
         )
     }
 
-    /// This function returns change stream for the colletion
+    /// This function returns change stream for the collection
+    /// if timeout is None, stream does not exit on timeout
     ///
     /// Returns `Stream` struct
     pub fn watch(
         &'a self,
         pipeline: &Document,
-        opts: &Document
+        opts: &Document,
+        timeout: Option<u64>
     ) -> Result<ChangeStream<'a>> {
+        let mut new_opts = opts.clone();
+        if let Some(timeout) = timeout {
+            new_opts.insert("maxAwaitTimeMS", timeout);
+        }
+
         let inner = unsafe {
             bindings::mongoc_collection_watch(
                 self.inner,
                 try!(Bsonc::from_document(&pipeline)).inner(),
-                try!(Bsonc::from_document(&opts)).inner()
+                try!(Bsonc::from_document(&new_opts)).inner()
             )
         };
-        Ok(ChangeStream::new(self, inner))
+        Ok(ChangeStream::new(self, inner, timeout.is_some()))
     }
-
 }
 
 impl<'a> Drop for Collection<'a> {

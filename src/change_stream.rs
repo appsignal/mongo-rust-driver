@@ -13,18 +13,21 @@ use super::Result;
 
 pub struct ChangeStream<'a> {
     _collection: &'a Collection<'a>,
-    inner:       *mut bindings::mongoc_change_stream_t
+    inner:       *mut bindings::mongoc_change_stream_t,
+    timeout:     bool
 }
 
 impl<'a> ChangeStream<'a> {
     #[doc(hidden)]
     pub fn new(
         _collection: &'a Collection<'a>,
-        inner:      *mut bindings::mongoc_change_stream_t
+        inner:      *mut bindings::mongoc_change_stream_t,
+        timeout: bool
     ) -> Self {
         Self {
             _collection,
-            inner
+            inner,
+            timeout
         }
     }
 
@@ -51,27 +54,33 @@ impl<'a> Iterator for ChangeStream<'a> {
 
         let mut bson_ptr: *const bindings::bson_t = ptr::null();
 
-        let success = unsafe {
-            bindings::mongoc_change_stream_next(
-                self.inner,
-                &mut bson_ptr
-            )
-        };
+        loop {
+            let success = unsafe {
+                bindings::mongoc_change_stream_next(
+                    self.inner,
+                    &mut bson_ptr
+                )
+            };
 
-        if success == 1 {
-            assert!(!bson_ptr.is_null());
+            if success == 1 {
+                assert!(!bson_ptr.is_null());
 
-            let bsonc = Bsonc::from_ptr(bson_ptr);
-            match bsonc.as_document() {
-                Ok(document) => return Some(Ok(document)),
-                Err(error)   => return Some(Err(error.into()))
-            }
-        } else {
-            let error = self.error();
-            if error.is_empty() {
-                None
+                let bsonc = Bsonc::from_ptr(bson_ptr);
+                match bsonc.as_document() {
+                    Ok(document) => return Some(Ok(document)),
+                    Err(error) => return Some(Err(error.into()))
+                }
             } else {
-                Some(Err(error.into()))
+                let error = self.error();
+                if error.is_empty() {
+                    if self.timeout {
+                        return None;
+                    } else {
+                        continue; // do not exit from stream
+                    }
+                } else {
+                    return Some(Err(error.into()));
+                }
             }
         }
 

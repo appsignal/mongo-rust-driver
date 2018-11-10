@@ -17,7 +17,7 @@ fn test_change_stream() {
     let guard = thread::spawn(move || {
         let client     = cloned_pool.pop();
         let collection = client.get_collection("rust_driver_test", "change_stream");
-        let stream = collection.watch(&doc!{"$match": {"$gte": 10}}, &doc!{"maxAwaitTimeMS": 1_000}).unwrap();
+        let stream = collection.watch(&doc!{"$match": {"$gte": 10}}, &doc!{}, Some(1000)).unwrap();
 
         let mut counter = 10;
         for x in stream {
