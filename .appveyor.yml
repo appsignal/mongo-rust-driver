@@ -16,6 +16,7 @@ install:
   - cd C:\Tools\vcpkg
   - git pull -q
   - .\bootstrap-vcpkg.bat
+  - vcpkg integrate install
   - vcpkg install openssl:x64-windows
   - vcpkg install mongo-c-driver:x64-windows
   - cd %APPVEYOR_BUILD_FOLDER%
