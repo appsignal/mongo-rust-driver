@@ -1,8 +1,8 @@
 environment:
   RUST_BACKTRACE: 1
-  OPENSSL_DIR C:\Tools\vcpkg\packages\openssl-windows_x64-windows
-  BSON_LIB C:\Tools\vcpkg\packages\libbson_x64-windows\lib
-  MONGO_LIB C:\Tools\vcpkg\packages\mongo-c-driver_x64-windows\lib
+  OPENSSL_DIR "C:\Tools\vcpkg\packages\openssl-windows_x64-windows"
+  BSON_LIB "C:\Tools\vcpkg\packages\libbson_x64-windows\lib"
+  MONGO_LIB "C:\Tools\vcpkg\packages\mongo-c-driver_x64-windows\lib"
   matrix:
   - TARGET: x86_64-pc-windows-msvc
 install:
@@ -16,7 +16,7 @@ install:
   - cd C:\Tools\vcpkg
   - git pull
   - .\bootstrap-vcpkg.bat
-  - vcpkg install openssl::x64-windows
+  - vcpkg install openssl:x64-windows
   - vcpkg install mongo-c-driver:x64-windows
 
 build: false
