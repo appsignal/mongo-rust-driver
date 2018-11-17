@@ -14,10 +14,11 @@ install:
   - cargo -vV
 
   - cd C:\Tools\vcpkg
-  - git pull
+  - git pull -q
   - .\bootstrap-vcpkg.bat
   - vcpkg install openssl:x64-windows
   - vcpkg install mongo-c-driver:x64-windows
+  - cd %APPVEYOR_BUILD_FOLDER%
 
 build: false
 test_script:
