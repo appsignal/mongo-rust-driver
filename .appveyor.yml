@@ -16,10 +16,11 @@ install:
   - cd C:\Tools\vcpkg
   - git pull -q
   - .\bootstrap-vcpkg.bat
-  - vcpkg integrate install
   - vcpkg install openssl:x64-windows
   - vcpkg install mongo-c-driver:x64-windows
   - cd %APPVEYOR_BUILD_FOLDER%
+  - copy C:\Tools\vcpkg\packages\libbson_x64-windows\bin\libbson-1.0.dll .
+  - copy C:\Tools\vcpkg\packages\mongo-c-driver_x64-windows\bin\libmongoc-1.0.dll .
 
 build: false
 test_script:
