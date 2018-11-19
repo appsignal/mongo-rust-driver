@@ -5,6 +5,7 @@ environment:
   OPENSSL_DIR: C:\Tools\vcpkg\packages\openssl-windows_x64-windows
   BSON_LIB: C:\Tools\vcpkg\packages\libbson_x64-windows\lib
   MONGO_LIB: C:\Tools\vcpkg\packages\mongo-c-driver_x64-windows\lib
+  SKIP_SSL_CONNECTION_TESTS: true
   matrix:
   - TARGET: x86_64-pc-windows-msvc
 install:
