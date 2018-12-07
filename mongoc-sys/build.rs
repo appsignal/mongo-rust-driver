@@ -3,12 +3,12 @@ extern crate pkg_config;
 extern crate vcpkg;
 
 use std::env;
-use std::path::Path;
-use std::process::Command;
-
 
 #[cfg(not(target_env = "msvc"))]
 fn lin(mongoc_version: &str) {
+    use std::path::Path;
+    use std::process::Command;
+
     if pkg_config::Config::new()
         .atleast_version(mongoc_version)
         .statik(true)
@@ -98,7 +98,7 @@ fn lin(mongoc_version: &str) {
 }
 
 #[cfg(target_env = "msvc")]
-fn win(mongoc_version: &str) {
+fn win(_mongoc_version: &str) {
     use vcpkg;
 
     let mongo_lib = "mongoc-1.0";
