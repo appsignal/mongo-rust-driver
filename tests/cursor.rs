@@ -88,6 +88,7 @@ fn test_tailing_cursor() {
     assert_eq!(25, guard.join().expect("Thread failed"));
 }
 
+#[cfg(not(target_os = "windows"))]
 #[test]
 fn test_batch_cursor() {
     let uri      = Uri::new("mongodb://localhost:27017/").unwrap();
