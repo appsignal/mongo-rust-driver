@@ -1,6 +1,6 @@
 use mongo_driver::client::{ClientPool,Uri};
 
-#[cfg(not(target_os = "windows"))]
+#[cfg_attr(target_os = "windows", ignore)]
 #[test]
 fn test_command() {
     let uri      = Uri::new("mongodb://localhost:27017/").unwrap();
