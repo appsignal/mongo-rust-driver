@@ -16,3 +16,4 @@ openssl-sys = "0.9"
 
 [build-dependencies]
 pkg-config = "0.3"
+vcpkg = "0.2.6"
