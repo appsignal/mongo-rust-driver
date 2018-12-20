@@ -81,6 +81,7 @@ fn test_get_server_status() {
     assert!(status.contains_key("version"));
 }
 
+#[cfg_attr(target_os = "windows", ignore)]
 #[test]
 fn test_read_command_with_opts() {
     let uri = Uri::new("mongodb://localhost:27017/").unwrap();
