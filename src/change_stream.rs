@@ -5,7 +5,7 @@ use std::iter::Iterator;
 use super::collection::Collection;
 
 use mongoc::bindings;
-use bson::{Bson,Document};
+use bson::Document;
 use super::bsonc::Bsonc;
 use super::BsoncError;
 use super::Result;
