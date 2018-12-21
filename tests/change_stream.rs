@@ -6,6 +6,7 @@ use std::time::Duration;
 
 use mongo_driver::client::{ClientPool,Uri};
 
+#[cfg_attr(target_os = "windows", ignore)]
 #[test]
 fn test_change_stream() {
     let uri      = Uri::new("mongodb://localhost:27017/").unwrap();
