@@ -4,7 +4,6 @@ use std::env;
 use std::path::Path;
 use std::process::Command;
 
-
 fn main() {
     let mongoc_version = env!("CARGO_PKG_VERSION")
         .split('-')
@@ -29,38 +28,27 @@ fn main() {
                 mongoc_version,
                 mongoc_version
             );
-            assert!(
-                Command::new("curl").arg("-O") // Save to disk
-                                    .arg("-L") // Follow redirects
-                                    .arg(url)
-                                    .status()
-                                    .expect("Could not run curl")
-                                    .success()
-            );
+            Command::new("curl").arg("-O") // Save to disk
+                .arg("-L") // Follow redirects
+                .arg(url)
+                .status()
+                .expect("Could not run curl");
 
             let archive_name = format!("mongo-c-driver-{}.tar.gz", mongoc_version);
-            assert!(
-                Command::new("tar")
-                    .arg("xzf")
-                    .arg(&archive_name)
-                    .status()
-                    .expect("Could not run tar")
-                    .success()
-            );
+            Command::new("tar")
+                .arg("xzf")
+                .arg(&archive_name)
+                .status()
+                .expect("Could not unarchive tar");
 
-            // Configure and install
-            let mut command = Command::new("sh");
-            command.arg("configure");
-            command.arg("--enable-ssl=openssl");
-            command.arg("--enable-sasl=no");
-            command.arg("--enable-static=yes");
-            command.arg("--enable-shared=no");
-            command.arg("--enable-shm-counters=no");
-            command.arg("--with-libbson=bundled");
-            command.arg("--with-pic=yes");
-            command.arg("--with-snappy=no");
-            command.arg("--with-zlib=no");
-            command.arg(format!("--prefix={}", &out_dir));
+            // Configure
+            let mut command = Command::new("cmake");
+            command.arg("");
+            command.arg("-DENABLE_AUTOMATIC_INIT_AND_CLEANUP=OFF");
+            command.arg("-DENABLE_STATIC=ON");
+            command.arg("-DENABLE_BSON=ON");
+            command.arg("-DENABLE_SSL=openssl");
+            command.arg(format!("-DCMAKE_INSTALL_PREFIX:PATH={}", &out_dir));
             command.current_dir(&driver_src_path);
 
             // Enable debug symbols if configured for this profile
@@ -73,23 +61,16 @@ fn main() {
                 command.arg(format!("--build={}", target));
             }
 
-            assert!(command.status().expect("Could not run configure").success());
-            assert!(
-                Command::new("make")
-                    .current_dir(&driver_src_path)
-                    .env("CFLAGS", "-DMONGOC_TRACE")
-                    .status()
-                    .expect("Could not run make")
-                    .success()
-            );
-            assert!(
-                Command::new("make")
-                    .arg("install")
-                    .current_dir(&driver_src_path)
-                    .status()
-                    .expect("Could not run make install")
-                    .success()
-            );
+            command.status().expect("cmake failed");
+            Command::new("make")
+                .current_dir(&driver_src_path)
+                .status()
+                .expect("Make failed");
+            Command::new("make")
+                .arg("install")
+                .current_dir(&driver_src_path)
+                .status()
+                .expect("make install failed");
         }
 
         // Output to Cargo
