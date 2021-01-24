@@ -11,7 +11,7 @@ use std::ptr;
 use std::io;
 use std::fs::File;
 
-use mongoc::bindings;
+use crate::mongoc::bindings;
 
 use bson::Document;
 

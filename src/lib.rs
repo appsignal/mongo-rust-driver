@@ -40,7 +40,7 @@ use std::ptr;
 use std::result;
 use std::sync::Once;
 
-use mongoc::bindings;
+use crate::mongoc::bindings;
 
 pub mod client;
 pub mod collection;
@@ -53,7 +53,7 @@ pub mod write_concern;
 mod bsonc;
 mod error;
 
-pub use error::{MongoError,BsoncError,MongoErrorDomain,MongoErrorCode,InvalidParamsError,BulkOperationError};
+pub use crate::error::{MongoError,BsoncError,MongoErrorDomain,MongoErrorCode,InvalidParamsError,BulkOperationError};
 
 /// Result that's used in all functions that perform operations on the database.
 pub type Result<T> = result::Result<T, MongoError>;

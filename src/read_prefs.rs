@@ -1,6 +1,6 @@
 //! Abstraction on top of the MongoDB connection read prefences.
 
-use mongoc::bindings;
+use crate::mongoc::bindings;
 
 /// Describes how reads should be dispatched.
 pub enum ReadMode {

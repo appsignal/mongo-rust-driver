@@ -6,7 +6,7 @@ use std::ffi::CStr;
 use bson::{DecoderError,EncoderError,ValueAccessError,Document};
 use std::ffi::NulError;
 
-use mongoc::bindings;
+use crate::mongoc::bindings;
 
 /// Wrapper for all errors that can occur in the driver.
 pub enum MongoError {

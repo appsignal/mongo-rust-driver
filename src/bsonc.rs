@@ -4,7 +4,7 @@ use std::fmt;
 use std::slice;
 use libc::c_void;
 
-use mongoc::bindings;
+use crate::mongoc::bindings;
 use bson;
 
 use super::Result;

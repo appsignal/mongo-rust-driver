@@ -7,8 +7,8 @@ use std::ffi::CStr;
 use std::borrow::Cow;
 use std::time::Duration;
 
-use mongoc::bindings;
-use bsonc;
+use crate::mongoc::bindings;
+use crate::bsonc;
 
 use bson::Document;
 

@@ -4,7 +4,7 @@ use std::ffi::{CString,CStr};
 use std::borrow::Cow;
 use std::ptr;
 
-use mongoc::bindings;
+use crate::mongoc::bindings;
 use bson::Document;
 
 use super::Result;
@@ -18,7 +18,7 @@ use super::cursor;
 use super::cursor::Cursor;
 use super::cursor::BatchCursor;
 use super::read_prefs::ReadPrefs;
-use flags::FlagsValue;
+use crate::flags::FlagsValue;
 
 #[doc(hidden)]
 pub enum CreatedBy<'a> {

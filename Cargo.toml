@@ -9,6 +9,7 @@ repository    = "https://github.com/thijsc/mongo-rust-driver"
 keywords      = ["mongodb", "database"]
 categories    = ["database", "api-bindings"]
 license       = "MIT/Apache-2.0"
+edition       = "2018"
 
 [badges]
 travis-ci = { repository = "thijsc/mongo-rust-driver" }
