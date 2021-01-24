@@ -3,8 +3,10 @@ use std::fmt;
 use std::borrow::Cow;
 use std::ffi::CStr;
 
-use bson::{DecoderError,EncoderError,ValueAccessError,Document};
 use std::ffi::NulError;
+
+use bson::{de,ser,Document};
+use bson::document::ValueAccessError;
 
 use crate::mongoc::bindings;
 
@@ -13,9 +15,9 @@ pub enum MongoError {
     /// Error in the underlying C driver.
     Bsonc(BsoncError),
     /// Error decoding Bson.
-    Decoder(DecoderError),
+    Decoder(de::Error),
     /// Error encoding Bson.
-    Encoder(EncoderError),
+    Encoder(ser::Error),
     /// Error accessing a value on a Bson document.
     ValueAccessError(ValueAccessError),
     /// Invalid params error that can be reported by the underlying C driver.
@@ -63,14 +65,14 @@ impl error::Error for MongoError {
     }
 }
 
-impl From<DecoderError> for MongoError {
-    fn from(error: DecoderError) -> MongoError {
+impl From<de::Error> for MongoError {
+    fn from(error: de::Error) -> MongoError {
         MongoError::Decoder(error)
     }
 }
 
-impl From<EncoderError> for MongoError {
-    fn from(error: EncoderError) -> MongoError {
+impl From<ser::Error> for MongoError {
+    fn from(error: ser::Error) -> MongoError {
         MongoError::Encoder(error)
     }
 }

@@ -5,7 +5,7 @@ use std::sync::Arc;
 use std::thread;
 use std::time::Duration;
 
-use bson::{bson,doc};
+use bson::doc;
 
 use mongo_driver::client::{ClientPool,Uri};
 use mongo_driver::Result;
@@ -17,7 +17,7 @@ fn test_cursor() {
     let client     = pool.pop();
     let mut collection = client.get_collection("rust_driver_test", "cursor_items");
 
-    let document = doc! { "key" => "value" };
+    let document = doc! { "key": "value" };
 
     collection.drop().unwrap_or(());
     for _ in 0..10 {
@@ -45,8 +45,8 @@ fn test_tailing_cursor() {
     database.get_collection("not_capped").drop().unwrap_or(());
 
     let options = doc! {
-        "capped" => true,
-        "size" => 100000
+        "capped": true,
+        "size": 100000
     };
     let capped_collection = database.create_collection("capped", Some(&options)).unwrap();
     let normal_collection = database.create_collection("not_capped", None).unwrap();
@@ -56,7 +56,7 @@ fn test_tailing_cursor() {
     let failing_result = failing_cursor.into_iter().next().expect("Nothing in iterator");
     assert!(failing_result.is_err());
 
-    let document = doc! { "key_1" => "Value 1" };
+    let document = doc! { "key_1": "Value 1" };
     // Insert a first document into the collection
     capped_collection.insert(&document, None).unwrap();
 
@@ -120,7 +120,7 @@ fn test_batch_cursor() {
 
         assert_eq!(
             result.ok().unwrap().get("nInserted").unwrap(), // why is this an i32?
-            &bson::Bson::I32(NUM_TO_TEST)
+            &bson::Bson::Int32(NUM_TO_TEST)
         );
         assert_eq!(NUM_TO_TEST as i64, collection.count(&doc!{}, None).unwrap());
     }

@@ -1,7 +1,7 @@
 extern crate bson;
 extern crate mongo_driver;
 
-use bson::{bson,doc};
+use bson::doc;
 
 use mongo_driver::CommandAndFindOptions;
 use mongo_driver::collection::{CountOptions,FindAndModifyOperation};
@@ -17,15 +17,15 @@ fn test_aggregate() {
     collection.drop().unwrap_or(());
 
     for _ in 0..5 {
-        assert!(collection.insert(&doc!{"key" => 1}, None).is_ok());
+        assert!(collection.insert(&doc!{"key": 1}, None).is_ok());
     }
 
     let pipeline = doc!{
-        "pipeline" => [
+        "pipeline": [
             {
-                "$group" => {
-                    "_id" => "$key",
-                    "total" => {"$sum" => "$key"}
+                "$group": {
+                    "_id": "$key",
+                    "total": {"$sum": "$key"}
                 }
             }
         ]
@@ -44,7 +44,7 @@ fn test_command() {
     let client   = pool.pop();
     let collection = client.get_collection("rust_driver_test", "items");
 
-    let command = doc! { "ping" => 1 };
+    let command = doc! { "ping": 1 };
 
     let result = collection.command(command, None).unwrap().next().unwrap().unwrap();
     assert!(result.contains_key("ok"));
@@ -57,7 +57,7 @@ fn test_command_simple() {
     let client   = pool.pop();
     let collection = client.get_collection("rust_driver_test", "items");
 
-    let command = doc! { "ping" => 1 };
+    let command = doc! { "ping": 1 };
 
     let result = collection.command_simple(command, None).unwrap();
     assert!(result.contains_key("ok"));
@@ -75,8 +75,8 @@ fn test_mutation_and_finding() {
     assert_eq!("items", collection.get_name().to_mut());
 
     let document = doc! {
-        "key_1" => "Value 1",
-        "key_2" => "kācaṃ śaknomyattum; nopahinasti mām. \u{0}"
+        "key_1": "Value 1",
+        "key_2": "kācaṃ śaknomyattum; nopahinasti mām. \u{0}"
     };
     collection.insert(&document, None).expect("Could not insert document");
     {
@@ -92,7 +92,7 @@ fn test_mutation_and_finding() {
     }
 
     let second_document = doc! {
-        "key_1" => "Value 3"
+        "key_1": "Value 3"
     };
     assert!(collection.insert(&second_document, None).is_ok());
 
@@ -118,12 +118,12 @@ fn test_mutation_and_finding() {
     );
 
     // Update the second document
-    let update = doc!{"$set" => {"key_1" => "Value 4"}};
+    let update = doc!{"$set": {"key_1": "Value 4"}};
     assert!(collection.update(&second_document, &update, None).is_ok());
 
     // Reload and check value
     let query_after_update = doc! {
-        "key_1" => "Value 4"
+        "key_1": "Value 4"
     };
     let mut found_document = collection.find(&query_after_update, None).unwrap().next().unwrap().unwrap();
     assert_eq!(
@@ -163,7 +163,7 @@ fn test_mutation_and_finding() {
             skip:        0,
             limit:       0,
             batch_size:  0,
-            fields:      Some(doc! { "key_1" => true }),
+            fields:      Some(doc! { "key_1": true }),
             read_prefs:  None
         };
 
@@ -194,10 +194,10 @@ fn test_find_and_modify() {
 
     // Upsert something, it should now exist
     let query = doc! {
-        "key_1" => "Value 1"
+        "key_1": "Value 1"
     };
     let update = doc! {
-        "$set" => {"content" => 1i32}
+        "$set": {"content": 1i32}
     };
     let result = collection.find_and_modify(
         &query,
@@ -211,7 +211,7 @@ fn test_find_and_modify() {
 
     // Update this record
     let update2 = doc! {
-        "$set" => {"content" => 2i32}
+        "$set": {"content": 2i32}
     };
     let result = collection.find_and_modify(
         &query,

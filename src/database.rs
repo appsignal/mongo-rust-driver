@@ -146,7 +146,7 @@ impl<'a> Database<'a> {
         };
 
         if success == 1 {
-            match reply.as_document_utf8_lossy() {
+            match reply.as_document() {
                 Ok(document) => return Ok(document),
                 Err(error)   => return Err(error.into())
             }

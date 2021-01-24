@@ -6,7 +6,7 @@ use chrono::prelude::*;
 
 use mongo_driver::client::{ClientPool,Uri};
 
-use bson::{bson,doc};
+use bson::{doc,Binary};
 use bson::oid::ObjectId;
 use bson::spec::BinarySubtype;
 
@@ -24,16 +24,19 @@ fn test_bson_encode_decode() {
 
     let datetime = Utc.ymd(2014, 7, 8).and_hms(9, 10, 11);
     let document = doc! {
-        "_id" => (ObjectId::new().unwrap()),
-        "floating_point" => 10.0,
-        "string" => "a value",
-        "array" => [10, 20, 30],
-        "doc" => {"key" => 1},
-        "bool" => true,
-        "i32" => 1i32,
-        "i64" => 1i64,
-        "datetime" => datetime,
-        "binary_generic" => (BinarySubtype::Generic, vec![0, 1, 2, 3, 4])
+        "_id": ObjectId::new(),
+        "floating_point": 10.0,
+        "string": "a value",
+        "array": [10, 20, 30],
+        "doc": {"key": 1},
+        "bool": true,
+        "i32": 1i32,
+        "i64": 1i64,
+        "datetime": datetime,
+        "binary": (Binary {
+            subtype: BinarySubtype::Generic,
+            bytes: vec![0, 1, 2, 3, 4]
+        })
     };
     assert!(collection.insert(&document, None).is_ok());
 
