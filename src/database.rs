@@ -79,7 +79,7 @@ impl<'a> Database<'a> {
                 options.skip,
                 options.limit,
                 options.batch_size,
-                try!(Bsonc::from_document(&command)).inner(),
+                Bsonc::from_document(&command)?.inner(),
                 match fields_bsonc {
                     Some(ref f) => f.inner(),
                     None => ptr::null()
@@ -135,7 +135,7 @@ impl<'a> Database<'a> {
         let success = unsafe {
             bindings::mongoc_database_command_simple(
                 self.inner,
-                try!(Bsonc::from_document(&command)).inner(),
+                Bsonc::from_document(&command)?.inner(),
                 match read_prefs {
                     Some(ref prefs) => prefs.inner(),
                     None => ptr::null()
@@ -166,7 +166,7 @@ impl<'a> Database<'a> {
         let mut error = BsoncError::empty();
         let name_cstring = CString::new(name).unwrap();
         let options_bsonc = match options {
-            Some(o) => Some(try!(Bsonc::from_document(o))),
+            Some(o) => Some(Bsonc::from_document(o)?),
             None => None
         };
 

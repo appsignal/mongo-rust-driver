@@ -247,10 +247,10 @@ impl<'a> Collection<'a> {
             bindings::mongoc_collection_aggregate(
                 self.inner,
                 options.query_flags.flags(),
-                try!(Bsonc::from_document(pipeline)).inner(),
+                Bsonc::from_document(pipeline)?.inner(),
                 match options.options {
                     Some(ref o) => {
-                        try!(Bsonc::from_document(o)).inner()
+                        Bsonc::from_document(o)?.inner()
                     },
                     None => ptr::null()
                 },
@@ -292,7 +292,7 @@ impl<'a> Collection<'a> {
                 options.skip,
                 options.limit,
                 options.batch_size,
-                try!(Bsonc::from_document(&command)).inner(),
+                Bsonc::from_document(&command)?.inner(),
                 match fields_bsonc {
                     Some(ref f) => f.inner(),
                     None => ptr::null()
@@ -331,7 +331,7 @@ impl<'a> Collection<'a> {
         let success = unsafe {
             bindings::mongoc_collection_command_simple(
                 self.inner,
-                try!(Bsonc::from_document(&command)).inner(),
+                Bsonc::from_document(&command)?.inner(),
                 match read_prefs {
                     Some(ref prefs) => prefs.inner(),
                     None => ptr::null()
@@ -365,7 +365,7 @@ impl<'a> Collection<'a> {
         let default_options = CountOptions::default();
         let options         = options.unwrap_or(&default_options);
         let opts_bsonc      =  match options.opts {
-            Some(ref o) => Some(try!(Bsonc::from_document(o))),
+            Some(ref o) => Some(Bsonc::from_document(o)?),
             None => None
         };
 
@@ -374,7 +374,7 @@ impl<'a> Collection<'a> {
             bindings::mongoc_collection_count_with_opts(
                 self.inner,
                 options.query_flags.flags(),
-                try!(Bsonc::from_document(query)).inner(),
+                Bsonc::from_document(query)?.inner(),
                 options.skip as i64,
                 options.limit as i64,
                 match opts_bsonc {
@@ -458,7 +458,7 @@ impl<'a> Collection<'a> {
                 options.skip,
                 options.limit,
                 options.batch_size,
-                try!(Bsonc::from_document(query)).inner(),
+                Bsonc::from_document(query)?.inner(),
                 match fields_bsonc {
                     Some(ref f) => f.inner(),
                     None => ptr::null()
@@ -505,13 +505,13 @@ impl<'a> Collection<'a> {
         // them around long enough.
         let sort_bsonc = match options.sort {
             Some(ref doc) => {
-                Some(try!(Bsonc::from_document(doc)))
+                Some(Bsonc::from_document(doc)?)
             },
             None => None
         };
         let update_bsonc = match operation {
             FindAndModifyOperation::Update(ref doc) | FindAndModifyOperation::Upsert(ref doc) => {
-                Some(try!(Bsonc::from_document(doc)))
+                Some(Bsonc::from_document(doc)?)
             },
             FindAndModifyOperation::Remove => None
         };
@@ -519,7 +519,7 @@ impl<'a> Collection<'a> {
         let success = unsafe {
             bindings::mongoc_collection_find_and_modify(
                 self.inner,
-                try!(Bsonc::from_document(&query)).inner(),
+                Bsonc::from_document(&query)?.inner(),
                 match sort_bsonc {
                     Some(ref s) => s.inner(),
                     None => ptr::null()
@@ -582,7 +582,7 @@ impl<'a> Collection<'a> {
             bindings::mongoc_collection_insert(
                 self.inner,
                 options.insert_flags.flags(),
-                try!(Bsonc::from_document(&document)).inner(),
+                Bsonc::from_document(&document)?.inner(),
                 options.write_concern.inner(),
                 error.mut_inner()
             )
@@ -613,7 +613,7 @@ impl<'a> Collection<'a> {
             bindings::mongoc_collection_remove(
                 self.inner,
                 options.remove_flags.flags(),
-                try!(Bsonc::from_document(&selector)).inner(),
+                Bsonc::from_document(&selector)?.inner(),
                 options.write_concern.inner(),
                 error.mut_inner()
             )
@@ -642,7 +642,7 @@ impl<'a> Collection<'a> {
         let success = unsafe {
             bindings::mongoc_collection_save(
                 self.inner,
-                try!(Bsonc::from_document(&document)).inner(),
+                Bsonc::from_document(&document)?.inner(),
                 write_concern.inner(),
                 error.mut_inner()
             )
@@ -673,8 +673,8 @@ impl<'a> Collection<'a> {
             bindings::mongoc_collection_update(
                 self.inner,
                 options.update_flags.flags(),
-                try!(Bsonc::from_document(&selector)).inner(),
-                try!(Bsonc::from_document(&update)).inner(),
+                Bsonc::from_document(&selector)?.inner(),
+                Bsonc::from_document(&update)?.inner(),
                 options.write_concern.inner(),
                 error.mut_inner()
             )
@@ -757,7 +757,7 @@ impl<'a>BulkOperation<'a> {
         unsafe {
             bindings::mongoc_bulk_operation_insert(
                 self.inner,
-                try!(Bsonc::from_document(&document)).inner()
+                Bsonc::from_document(&document)?.inner()
             )
         }
         Ok(())
@@ -773,7 +773,7 @@ impl<'a>BulkOperation<'a> {
         unsafe {
             bindings::mongoc_bulk_operation_remove(
                 self.inner,
-                try!(Bsonc::from_document(&selector)).inner()
+                Bsonc::from_document(&selector)?.inner()
             )
         }
         Ok(())
@@ -789,7 +789,7 @@ impl<'a>BulkOperation<'a> {
         unsafe {
             bindings::mongoc_bulk_operation_remove_one(
                 self.inner,
-                try!(Bsonc::from_document(&selector)).inner()
+                Bsonc::from_document(&selector)?.inner()
             )
         }
         Ok(())
@@ -807,8 +807,8 @@ impl<'a>BulkOperation<'a> {
         unsafe {
             bindings::mongoc_bulk_operation_replace_one(
                 self.inner,
-                try!(Bsonc::from_document(&selector)).inner(),
-                try!(Bsonc::from_document(&document)).inner(),
+                Bsonc::from_document(&selector)?.inner(),
+                Bsonc::from_document(&document)?.inner(),
                 upsert as u8
             )
         }
@@ -830,8 +830,8 @@ impl<'a>BulkOperation<'a> {
         unsafe {
             bindings::mongoc_bulk_operation_update_one(
                 self.inner,
-                try!(Bsonc::from_document(&selector)).inner(),
-                try!(Bsonc::from_document(&document)).inner(),
+                Bsonc::from_document(&selector)?.inner(),
+                Bsonc::from_document(&document)?.inner(),
                 upsert as u8
             )
         }
@@ -853,8 +853,8 @@ impl<'a>BulkOperation<'a> {
         unsafe {
             bindings::mongoc_bulk_operation_update(
                 self.inner,
-                try!(Bsonc::from_document(&selector)).inner(),
-                try!(Bsonc::from_document(&document)).inner(),
+                Bsonc::from_document(&selector)?.inner(),
+                Bsonc::from_document(&document)?.inner(),
                 upsert as u8
             )
         }

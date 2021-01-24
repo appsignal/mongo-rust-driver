@@ -38,7 +38,7 @@ extern crate serde;
 use std::ffi::CStr;
 use std::ptr;
 use std::result;
-use std::sync::{Once,ONCE_INIT};
+use std::sync::Once;
 
 use mongoc::bindings;
 
@@ -61,7 +61,7 @@ pub type Result<T> = result::Result<T, MongoError>;
 /// Result that's used in bulk operations.
 pub type BulkOperationResult<T> = result::Result<T, BulkOperationError>;
 
-static MONGOC_INIT: Once = ONCE_INIT;
+static MONGOC_INIT: Once = Once::new();
 
 /// Init mongo driver, needs to be called once before doing
 /// anything else.

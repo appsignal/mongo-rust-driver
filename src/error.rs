@@ -51,18 +51,7 @@ impl fmt::Debug for MongoError {
 }
 
 impl error::Error for MongoError {
-    fn description(&self) -> &str {
-        match *self {
-            MongoError::Bsonc(ref err) => err.description(),
-            MongoError::Decoder(ref err) => err.description(),
-            MongoError::Encoder(ref err) => err.description(),
-            MongoError::ValueAccessError(ref err) => err.description(),
-            MongoError::InvalidParams(ref err) => err.description(),
-            MongoError::Nul(ref err) => err.description()
-        }
-    }
-
-    fn cause(&self) -> Option<&error::Error> {
+    fn cause(&self) -> Option<&dyn error::Error> {
         match *self {
             MongoError::Bsonc(ref err) => Some(err),
             MongoError::Decoder(ref err) => Some(err),

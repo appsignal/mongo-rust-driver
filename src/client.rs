@@ -142,11 +142,11 @@ impl SslOptions {
         crl_file:             Option<PathBuf>,
         weak_cert_validation: bool
     ) -> io::Result<SslOptions> {
-        let pem_file_cstring     = try!(Self::cstring_from_path(&pem_file));
+        let pem_file_cstring     = Self::cstring_from_path(&pem_file)?;
         let pem_password_cstring = Self::cstring_from_string(&pem_password);
-        let ca_file_cstring      = try!(Self::cstring_from_path(&ca_file));
-        let ca_dir_cstring       = try!(Self::cstring_from_path(&ca_dir));
-        let crl_file_cstring     = try!(Self::cstring_from_path(&crl_file));
+        let ca_file_cstring      = Self::cstring_from_path(&ca_file)?;
+        let ca_dir_cstring       = Self::cstring_from_path(&ca_dir)?;
+        let crl_file_cstring     = Self::cstring_from_path(&crl_file)?;
 
         let ssl_options = bindings::mongoc_ssl_opt_t {
             pem_file: match pem_file_cstring {
@@ -192,7 +192,7 @@ impl SslOptions {
     fn cstring_from_path(path: &Option<PathBuf>) -> io::Result<Option<CString>> {
         match path {
             &Some(ref p) => {
-                try!(File::open(p.as_path()));
+                File::open(p.as_path())?;
                 Ok(Some(CString::new(p.to_string_lossy().into_owned()).unwrap()))
             },
             &None => Ok(None)
