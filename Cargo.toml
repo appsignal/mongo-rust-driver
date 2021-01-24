@@ -15,9 +15,6 @@ travis-ci = { repository = "thijsc/mongo-rust-driver" }
 is-it-maintained-issue-resolution = { repository = "thijsc/mongo-rust-driver" }
 is-it-maintained-open-issues = { repository = "thijsc/mongo-rust-driver" }
 
-[[test]]
-name = "tests"
-
 [dependencies]
 libc = "^0.2"
 log  = "^0.4"
