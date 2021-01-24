@@ -1,4 +1,7 @@
-use bson;
+extern crate bson;
+extern crate mongo_driver;
+
+use bson::{bson,doc};
 
 use mongo_driver::CommandAndFindOptions;
 use mongo_driver::collection::{CountOptions,FindAndModifyOperation};

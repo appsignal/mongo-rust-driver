@@ -1,3 +1,8 @@
+extern crate bson;
+extern crate mongo_driver;
+
+use bson::{bson,doc};
+
 use mongo_driver::client::{ClientPool,Uri};
 
 #[cfg_attr(target_os = "windows", ignore)]

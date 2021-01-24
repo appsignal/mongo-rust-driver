@@ -1,8 +1,11 @@
+extern crate bson;
+extern crate mongo_driver;
+
 use std::sync::Arc;
 use std::thread;
 use std::time::Duration;
 
-use bson;
+use bson::{bson,doc};
 
 use mongo_driver::client::{ClientPool,Uri};
 use mongo_driver::Result;

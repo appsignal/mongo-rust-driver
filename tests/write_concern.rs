@@ -1,3 +1,5 @@
+extern crate mongo_driver;
+
 use mongo_driver::write_concern::WriteConcern;
 
 #[test]

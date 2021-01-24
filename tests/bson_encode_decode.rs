@@ -1,7 +1,12 @@
+extern crate bson;
+extern crate chrono;
+extern crate mongo_driver;
+
 use chrono::prelude::*;
 
 use mongo_driver::client::{ClientPool,Uri};
 
+use bson::{bson,doc};
 use bson::oid::ObjectId;
 use bson::spec::BinarySubtype;
 
