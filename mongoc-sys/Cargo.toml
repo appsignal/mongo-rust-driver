@@ -1,6 +1,6 @@
 [package]
 name        = "mongoc-sys"
-version     = "1.8.2-1"
+version     = "1.17.4"
 description = "Sys package with installer and bindings for mongoc"
 authors     = ["Thijs Cadier <thijs@appsignal.com>"]
 build       = "build.rs"
@@ -8,12 +8,10 @@ repository  = "https://github.com/thijsc/mongo-rust-driver"
 links       = "mongoc"
 license     = "MIT/Apache-2.0"
 categories  = ["external-ffi-bindings"]
-exclude     = ["mongo-c-driver-*"]
 
 [dependencies]
-libc        = "0.2"
-openssl-sys = "0.9"
+libc        = "^0.2"
+openssl-sys = "^0.9"
 
 [build-dependencies]
-pkg-config = "0.3"
-vcpkg = "0.2.6"
+pkg-config = "^0.3"

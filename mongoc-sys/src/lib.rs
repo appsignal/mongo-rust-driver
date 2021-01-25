@@ -254,3 +254,11 @@ pub mod bindings {
     pub const MONGOC_ERROR_WRITE_CONCERN_ERROR: ::libc::c_uint = 64;
     pub const MONGOC_ERROR_DUPLICATE_KEY: ::libc::c_uint = 11000;
 }
+
+#[cfg(test)]
+mod tests {
+    #[test]
+    fn run() {
+        // Just a quick test to make seeing if everything links right easy
+    }
+}

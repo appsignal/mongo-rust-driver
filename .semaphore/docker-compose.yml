@@ -14,10 +14,8 @@ services:
     depends_on:
       - mongodb
     environment:
-      CARGO_HOME: "/tmp/_cargo"
       RUST_TEST_THREADS: "1"
       RUST_BACKTRACE: "full"
-      LIBCLANG_PATH: "/usr/lib/llvm-7/lib"
       SKIP_SSL_CONNECTION_TESTS: "true"
       MONGODB_CONNECTION_STRING: "mongodb://mongodb:27017"
     working_dir: /project

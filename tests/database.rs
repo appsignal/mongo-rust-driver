@@ -7,7 +7,6 @@ use bson::doc;
 
 use mongo_driver::client::{ClientPool,Uri};
 
-#[cfg_attr(target_os = "windows", ignore)]
 #[test]
 fn test_command() {
     let uri      = Uri::new(helpers::mongodb_test_connection_string()).unwrap();

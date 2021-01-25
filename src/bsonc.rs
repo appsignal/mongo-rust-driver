@@ -10,7 +10,8 @@ use bson;
 use super::Result;
 
 pub struct Bsonc {
-    inner: *mut bindings::bson_t
+    inner: *mut bindings::bson_t,
+    destroy_inner_on_drop: bool
 }
 
 impl Bsonc {
@@ -18,9 +19,14 @@ impl Bsonc {
         Bsonc::from_ptr(unsafe { bindings::bson_new() })
     }
 
+    /// Create a bsonc from a raw pointer. Does not run cleanup
+    /// logic on drop in this case.
     pub fn from_ptr(inner: *const bindings::bson_t) -> Bsonc {
         assert!(!inner.is_null());
-        Bsonc { inner: inner as *mut bindings::bson_t }
+        Bsonc {
+            inner: inner as *mut bindings::bson_t,
+            destroy_inner_on_drop: false
+        }
     }
 
     pub fn from_document(document: &bson::Document) -> Result<Bsonc> {
@@ -39,7 +45,10 @@ impl Bsonc {
         // See: http://mongoc.org/libbson/current/bson_new_from_data.html
         assert!(!inner.is_null());
 
-        Ok(Bsonc{ inner: inner })
+        Ok(Bsonc{
+            inner: inner,
+            destroy_inner_on_drop: true
+        })
     }
 
     /// Decode a bson from the C side to a document
@@ -92,8 +101,10 @@ impl fmt::Debug for Bsonc {
 
 impl Drop for Bsonc {
     fn drop(&mut self) {
-        unsafe {
-            bindings::bson_destroy(self.inner);
+        if self.destroy_inner_on_drop {
+            unsafe {
+                bindings::bson_destroy(self.inner);
+            }
         }
     }
 }

@@ -1,13 +1,16 @@
 extern crate pkg_config;
-#[cfg(target_env = "msvc")]
-extern crate vcpkg;
 
 use std::env;
+use std::path::Path;
+use std::process::Command;
 
-#[cfg(not(target_env = "msvc"))]
-fn lin(mongoc_version: &str) {
-    use std::path::Path;
-    use std::process::Command;
+fn main() {
+    let mongoc_version = env!("CARGO_PKG_VERSION")
+        .split('-')
+        .next()
+        .expect("Crate version is not valid");
+
+    pkg_config::Config::new().probe("zlib").expect("Cannot find zlib");
 
     if pkg_config::Config::new()
         .atleast_version(mongoc_version)
@@ -16,10 +19,10 @@ fn lin(mongoc_version: &str) {
         .is_err()
         {
             let out_dir_var = env::var("OUT_DIR").expect("No out dir");
-            let out_dir = format!("{}/{}", out_dir_var, mongoc_version);
-            let driver_src_path = format!("mongo-c-driver-{}", mongoc_version);
+            let out_dir = Path::new(&out_dir_var);
+            let driver_src_path = out_dir.join(format!("mongo-c-driver-{}", mongoc_version));
 
-            let libmongoc_path = Path::new(&out_dir).join("lib/libmongoc-1.0.a");
+            let libmongoc_path = out_dir.join("usr/local/lib/libmongoc-static-1.0.a");
             if !libmongoc_path.exists() {
                 // Download and extract driver archive
                 let url = format!(
@@ -29,6 +32,7 @@ fn lin(mongoc_version: &str) {
                 );
                 assert!(
                     Command::new("curl").arg("-O") // Save to disk
+                        .current_dir(out_dir)
                         .arg("-L") // Follow redirects
                         .arg(url)
                         .status()
@@ -39,6 +43,7 @@ fn lin(mongoc_version: &str) {
                 let archive_name = format!("mongo-c-driver-{}.tar.gz", mongoc_version);
                 assert!(
                     Command::new("tar")
+                        .current_dir(out_dir)
                         .arg("xzf")
                         .arg(&archive_name)
                         .status()
@@ -46,97 +51,38 @@ fn lin(mongoc_version: &str) {
                         .success()
                 );
 
-                // Configure and install
-                let mut command = Command::new("sh");
-                command.arg("configure");
-                command.arg("--enable-ssl=openssl");
-                command.arg("--enable-sasl=no");
-                command.arg("--enable-static=yes");
-                command.arg("--enable-shared=no");
-                command.arg("--enable-shm-counters=no");
-                command.arg("--with-libbson=bundled");
-                command.arg("--with-pic=yes");
-                command.arg("--with-snappy=no");
-                command.arg("--with-zlib=no");
-                command.arg(format!("--prefix={}", &out_dir));
-                command.current_dir(&driver_src_path);
+                // Set up cmake command
+                let mut cmake = Command::new("cmake");
+                cmake.current_dir(&driver_src_path);
 
-                // Enable debug symbols if configured for this profile
-                if env::var("DEBUG") == Ok("true".to_string()) {
-                    command.arg("--enable-debug-symbols=yes");
-                }
+                cmake.arg("-DENABLE_AUTOMATIC_INIT_AND_CLEANUP=OFF");
+                cmake.arg("-DENABLE_SSL=OPENSSL");
+                cmake.arg("-DENABLE_SASL=OFF");
+                cmake.arg("-DENABLE_STATIC=OFF");
+                cmake.arg("-DENABLE_TESTS=OFF");
+                cmake.arg("-DWITH_PIC=ON");
+                cmake.arg("-DWITH_SNAPPY=OFF");
+                cmake.arg("-DWITH_ZLIB=ON");
 
-                // Use target that Cargo sets
-                if let Ok(target) = env::var("TARGET") {
-                    command.arg(format!("--build={}", target));
-                }
+                // Run in current dir
+                cmake.arg(".");
 
-                assert!(command.status().expect("Could not run configure").success());
-                assert!(
-                    Command::new("make")
-                        .current_dir(&driver_src_path)
-                        .env("CFLAGS", "-DMONGOC_TRACE")
-                        .status()
-                        .expect("Could not run make")
-                        .success()
-                );
-                assert!(
-                    Command::new("make")
-                        .arg("install")
-                        .current_dir(&driver_src_path)
-                        .status()
-                        .expect("Could not run make install")
-                        .success()
-                );
+                // Run cmake command
+                assert!(cmake.status().expect("Could not run cmake").success());
+
+                // Set up make install command
+                let mut make = Command::new("make");
+                make.current_dir(&driver_src_path);
+                make.arg(format!("DESTDIR={}", out_dir.to_string_lossy()));
+                make.arg("install");
+
+                // Run make command
+                assert!(make.status().expect("Could not run make install").success());
             }
 
             // Output to Cargo
-            println!("cargo:rustc-link-search=native={}/lib", &out_dir);
-            println!("cargo:rustc-link-lib=static=bson-1.0");
-            println!("cargo:rustc-link-lib=static=mongoc-1.0");
+            println!("cargo:rustc-link-search=native={}/usr/local/lib", &out_dir.to_string_lossy());
+            println!("cargo:rustc-link-lib=bson-1.0");
+            println!("cargo:rustc-link-lib=mongoc-1.0");
         }
-}
-
-#[cfg(target_env = "msvc")]
-fn win(_mongoc_version: &str) {
-    use vcpkg;
-
-    let mongo_lib = "mongoc-1.0";
-    let bson_lib = "bson-1.0";
-
-    if vcpkg::Config::new()
-        .emit_includes(true)
-        .probe("mongo-c-driver")
-        .is_ok()
-    {
-        // Output to Cargo
-        println!("cargo:rustc-link-lib={}", bson_lib);
-        println!("cargo:rustc-link-lib={}", mongo_lib);
-    } else {
-        if let Ok(bson_dir_lib) = env::var("MONGO_LIB") {
-            if let Ok(mongo_dir_lib) = env::var("BSON_LIB") {
-                println!("cargo:rustc-link-search=native={}", bson_dir_lib);
-                println!("cargo:rustc-link-lib=dylib={}", bson_lib);
-                println!("cargo:rustc-link-search=native={}", mongo_dir_lib);
-                println!("cargo:rustc-link-lib=dylib={}", mongo_lib);
-
-            } else {
-                panic!("please define BSON_LIB to {}.lib, \n for example set BSON_LIB=C:\\vcpkg\\packages\\libbson_x64-windows\\lib", bson_lib);
-            }
-        } else {
-            panic!("please define MONGO_LIB to {}.lib, \n for example set MONGO_LIB=C:\\vcpkg\\packages\\mongo-c-driver_x64-windows\\lib", mongo_lib);
-        }
-    }
-}
-
-fn main() {
-    let mongoc_version = env!("CARGO_PKG_VERSION")
-        .split('-')
-        .next()
-        .expect("Crate version is not valid");
-
-    #[cfg(target_env = "msvc")]
-    win(mongoc_version);
-    #[cfg(not(target_env = "msvc"))]
-    lin(mongoc_version);
 }

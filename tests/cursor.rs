@@ -93,7 +93,6 @@ fn test_tailing_cursor() {
     assert_eq!(25, guard.join().expect("Thread failed"));
 }
 
-#[cfg_attr(target_os = "windows", ignore)]
 #[test]
 fn test_batch_cursor() {
     let uri      = Uri::new(helpers::mongodb_test_connection_string()).unwrap();
