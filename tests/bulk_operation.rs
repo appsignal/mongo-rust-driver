@@ -1,7 +1,9 @@
+extern crate bson;
+extern crate mongo_driver;
+
 use std::env;
 
-use bson;
-
+use bson::{bson,doc};
 use mongo_driver::client::{ClientPool,Uri};
 
 #[test]

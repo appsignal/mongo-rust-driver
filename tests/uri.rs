@@ -1,3 +1,4 @@
+extern crate mongo_driver;
 use mongo_driver::client::Uri;
 
 #[test]

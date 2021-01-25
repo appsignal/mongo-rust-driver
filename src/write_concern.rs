@@ -1,6 +1,6 @@
 //! Abstraction on top of the MongoDB connection write concern.
 
-use mongoc::bindings;
+use crate::mongoc::bindings;
 
 /// Possible write concern levels, only default is supported at the moment.
 pub enum WriteConcernLevel {

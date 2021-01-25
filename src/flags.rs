@@ -1,6 +1,6 @@
 //! Flags to configure various MongoDB operations.
 
-use mongoc::bindings;
+use crate::mongoc::bindings;
 
 use std::collections::BTreeSet;
 

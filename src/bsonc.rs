@@ -4,7 +4,7 @@ use std::fmt;
 use std::slice;
 use libc::c_void;
 
-use mongoc::bindings;
+use crate::mongoc::bindings;
 use bson;
 
 use super::Result;
@@ -25,7 +25,7 @@ impl Bsonc {
 
     pub fn from_document(document: &bson::Document) -> Result<Bsonc> {
         let mut buffer = Vec::new();
-        try!(bson::encode_document(&mut buffer, document));
+        bson::encode_document(&mut buffer, document)?;
 
         let inner = unsafe {
             bindings::bson_new_from_data(
@@ -60,8 +60,7 @@ impl Bsonc {
             slice::from_raw_parts(data_ptr, data_len)
         };
 
-        let document = try!(bson::decode_document(&mut slice));
-        Ok(document)
+        Ok(bson::decode_document(&mut slice)?)
     }
 
     /// Decode a bson from the C side to a document with lossy UTF-8 decoding
@@ -82,8 +81,7 @@ impl Bsonc {
             slice::from_raw_parts(data_ptr, data_len)
         };
 
-        let document = try!(bson::decode_document_utf8_lossy(&mut slice));
-        Ok(document)
+        Ok(bson::decode_document_utf8_lossy(&mut slice)?)
     }
 
     pub fn as_json(&self) -> String {

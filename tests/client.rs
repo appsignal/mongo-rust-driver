@@ -1,8 +1,12 @@
+extern crate bson;
+extern crate mongo_driver;
+
 use std::env;
 use std::path::PathBuf;
 use std::sync::Arc;
 use std::thread;
 
+use bson::{bson,doc};
 use mongo_driver::client::{ClientPool,SslOptions,Uri};
 
 #[test]

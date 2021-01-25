@@ -6,7 +6,7 @@ use std::thread;
 use std::time::Duration;
 use std::collections::VecDeque;
 
-use mongoc::bindings;
+use crate::mongoc::bindings;
 use bson::{self,Bson,Document,oid};
 
 use super::BsoncError;
