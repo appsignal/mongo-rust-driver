@@ -20,7 +20,7 @@ fn test_execute_error() {
     assert!(result.is_err());
 
     let error_message = format!("{:?}", result.err().unwrap());
-    assert_eq!(error_message, "BulkOperationError { error: MongoError (BsoncError: Command/CommandInvalidArg - Cannot do an empty bulk write), reply: OrderedDocument({}) }");
+    assert_eq!(error_message, "BulkOperationError { error: MongoError (BsoncError: Command/CommandInvalidArg - Cannot do an empty bulk write), reply: Document({}) }");
 }
 
 #[test]

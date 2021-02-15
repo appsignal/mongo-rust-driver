@@ -60,7 +60,7 @@ impl Bsonc {
             slice::from_raw_parts(data_ptr, data_len)
         };
 
-        Ok(bson::Document::from_reader(&mut slice)?)
+        Ok(bson::Document::from_reader_utf8_lossy(&mut slice)?)
     }
 
     pub fn as_json(&self) -> String {
