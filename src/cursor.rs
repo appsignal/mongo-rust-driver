@@ -205,7 +205,7 @@ impl<'a> Iterator for TailingCursor<'a> {
                     // Add the last seen id to the query if it's present.
                     match self.last_seen_id.take() {
                         Some(id) => {
-                            self.query.insert_bson("_id".to_string(), Bson::Document(doc!{ "$gt" => id }));
+                            self.query.insert("_id".to_string(), Bson::Document(doc!{ "$gt": id }));
                         },
                         None => ()
                     };
@@ -339,7 +339,7 @@ fn batch_to_array(doc: Document) -> Result<(Option<DocArray>,Option<CursorId>)> 
         bson::from_bson(Bson::Document(doc.clone()))
             .map_err(|err| {
                 error!("cannot read batch from db: {}", err);
-                ValueAccessError(bson::ValueAccessError::NotPresent)
+                ValueAccessError(bson::document::ValueAccessError::NotPresent)
             });
 
     doc_result.map(|v| {

@@ -6,7 +6,7 @@ use std::path::PathBuf;
 use std::sync::Arc;
 use std::thread;
 
-use bson::{bson,doc};
+use bson::doc;
 use mongo_driver::client::{ClientPool,SslOptions,Uri};
 
 #[test]
@@ -95,8 +95,8 @@ fn test_read_command_with_opts() {
     let collection = client.get_collection(db_name, coll_name);
 
     let document = doc! {
-        "key_1" => "Value 1",
-        "key_2" => "kācaṃ śaknomyattum; nopahinasti mām. \u{0}"
+        "key_1": "Value 1",
+        "key_2": "kācaṃ śaknomyattum; nopahinasti mām. \u{0}"
     };
     collection.insert(&document, None).expect("Could not insert document");
 
@@ -161,6 +161,6 @@ fn test_ssl_connection_success() {
     let client = pool.pop();
     let database = client.get_database("admin");
 
-    let result = database.command_simple(doc!{"ping" => 1}, None).unwrap();
+    let result = database.command_simple(doc!{"ping": 1}, None).unwrap();
     assert!(result.contains_key("ok"));
 }

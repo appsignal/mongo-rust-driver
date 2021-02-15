@@ -1,7 +1,7 @@
 extern crate bson;
 extern crate mongo_driver;
 
-use bson::{bson,doc};
+use bson::doc;
 
 use mongo_driver::client::{ClientPool,Uri};
 
@@ -13,7 +13,7 @@ fn test_command() {
     let client   = pool.pop();
     let database = client.get_database("rust_test");
 
-    let command = doc! { "ping" => 1 };
+    let command = doc! { "ping": 1 };
 
     let result = database.command(command, None).unwrap().next().unwrap().unwrap();
     assert!(result.contains_key("ok"));
@@ -26,7 +26,7 @@ fn test_command_simple() {
     let client   = pool.pop();
     let database = client.get_database("rust_test");
 
-    let command = doc! { "ping" => 1 };
+    let command = doc! { "ping": 1 };
 
     let result = database.command_simple(command, None).unwrap();
     assert!(result.contains_key("ok"));

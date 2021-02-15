@@ -19,7 +19,7 @@ is-it-maintained-open-issues = { repository = "thijsc/mongo-rust-driver" }
 [dependencies]
 libc = "^0.2"
 log  = "^0.4"
-bson = "^0.12"
+bson = "^1.2"
 serde = "1.0"
 serde_derive = "1.0"
 

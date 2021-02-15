@@ -25,7 +25,7 @@ impl Bsonc {
 
     pub fn from_document(document: &bson::Document) -> Result<Bsonc> {
         let mut buffer = Vec::new();
-        bson::encode_document(&mut buffer, document)?;
+        document.to_writer(&mut buffer)?;
 
         let inner = unsafe {
             bindings::bson_new_from_data(
@@ -60,28 +60,7 @@ impl Bsonc {
             slice::from_raw_parts(data_ptr, data_len)
         };
 
-        Ok(bson::decode_document(&mut slice)?)
-    }
-
-    /// Decode a bson from the C side to a document with lossy UTF-8 decoding
-    pub fn as_document_utf8_lossy(&self) -> Result<bson::Document> {
-        assert!(!self.inner.is_null());
-
-        // This pointer should not be modified or freed
-        // See: http://mongoc.org/libbson/current/bson_get_data.html
-        let data_ptr = unsafe { bindings::bson_get_data(self.inner) };
-        assert!(!data_ptr.is_null());
-
-        let data_len = unsafe {
-            let bson = *self.inner;
-            bson.len
-        } as usize;
-
-        let mut slice = unsafe {
-            slice::from_raw_parts(data_ptr, data_len)
-        };
-
-        Ok(bson::decode_document_utf8_lossy(&mut slice)?)
+        Ok(bson::Document::from_reader_utf8_lossy(&mut slice)?)
     }
 
     pub fn as_json(&self) -> String {
@@ -123,7 +102,7 @@ impl Drop for Bsonc {
 mod tests {
     #[test]
     fn test_bsonc_from_and_as_document() {
-        let document = doc! { "key" => "value" };
+        let document = doc! { "key": "value" };
         let bsonc = super::Bsonc::from_document(&document).unwrap();
 
         let decoded = bsonc.as_document().unwrap();
@@ -134,16 +113,16 @@ mod tests {
     fn test_bsonc_from_and_as_document_invalid_utf8() {
         let bytes = b"\x80\xae".to_vec();
         let value = unsafe { String::from_utf8_unchecked(bytes) };
-        let document = doc! { "key" => value };
+        let document = doc! { "key": value };
         let bsonc = super::Bsonc::from_document(&document).unwrap();
 
-        let decoded = bsonc.as_document_utf8_lossy().unwrap();
+        let decoded = bsonc.as_document().unwrap();
         assert_eq!(decoded.get_str("key").unwrap(), "��");
     }
 
     #[test]
     fn test_bsonc_as_json() {
-        let document = doc! { "key" => "value" };
+        let document = doc! { "key": "value" };
         let bsonc = super::Bsonc::from_document(&document).unwrap();
         assert_eq!("{ \"key\" : \"value\" }".to_owned(), bsonc.as_json());
     }

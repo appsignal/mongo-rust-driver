@@ -3,7 +3,7 @@ extern crate mongo_driver;
 
 use std::env;
 
-use bson::{bson,doc};
+use bson::doc;
 use mongo_driver::client::{ClientPool,Uri};
 
 #[test]
@@ -20,7 +20,7 @@ fn test_execute_error() {
     assert!(result.is_err());
 
     let error_message = format!("{:?}", result.err().unwrap());
-    assert_eq!(error_message, "BulkOperationError { error: MongoError (BsoncError: Command/CommandInvalidArg - Cannot do an empty bulk write), reply: OrderedDocument({}) }");
+    assert_eq!(error_message, "BulkOperationError { error: MongoError (BsoncError: Command/CommandInvalidArg - Cannot do an empty bulk write), reply: Document({}) }");
 }
 
 #[test]
@@ -33,7 +33,7 @@ fn test_basics() {
 
     let bulk_operation = collection.create_bulk_operation(None);
 
-    let document = doc! {"key_1" => "Value 1"};
+    let document = doc! {"key_1": "Value 1"};
     bulk_operation.insert(&document).expect("Could not insert");
     assert!(bulk_operation.execute().is_ok());
 
@@ -54,7 +54,7 @@ fn test_utf8() {
 
     let bulk_operation = collection.create_bulk_operation(None);
 
-    let document = doc! {"key_1" => "kācaṃ śaknomyattum; nopahinasti mām."};
+    let document = doc! {"key_1": "kācaṃ śaknomyattum; nopahinasti mām."};
     bulk_operation.insert(&document).expect("Could not insert");
     assert!(bulk_operation.execute().is_ok());
 
@@ -82,8 +82,8 @@ fn test_insert_remove_replace_update_extended() {
         let bulk_operation = collection.create_bulk_operation(None);
 
         let document = doc! {
-            "key_1" => "Value 1",
-            "key_2" => "Value 2"
+            "key_1": "Value 1",
+            "key_2": "Value 2"
         };
         for _ in 0..5 {
             bulk_operation.insert(&document).unwrap();
@@ -94,7 +94,7 @@ fn test_insert_remove_replace_update_extended() {
 
         assert_eq!(
             result.ok().unwrap().get("nInserted").unwrap(),
-            &bson::Bson::I32(5)
+            &bson::Bson::Int32(5)
         );
         assert_eq!(5, collection.count(&doc!{}, None).unwrap());
     }
@@ -102,7 +102,7 @@ fn test_insert_remove_replace_update_extended() {
     let query = doc!{};
 
     let update_document = doc! {
-        "$set" => {"key_1" => "Value update"}
+        "$set": {"key_1": "Value update"}
     };
 
     // Update one
@@ -120,7 +120,7 @@ fn test_insert_remove_replace_update_extended() {
 
         assert_eq!(
             result.ok().unwrap().get("nModified").unwrap(),
-            &bson::Bson::I32(1)
+            &bson::Bson::Int32(1)
         );
 
         let first_document = collection.find(&doc!{}, None).unwrap().next().unwrap().unwrap();
@@ -147,7 +147,7 @@ fn test_insert_remove_replace_update_extended() {
 
         assert_eq!(
             result.ok().unwrap().get("nModified").unwrap(),
-            &bson::Bson::I32(4)
+            &bson::Bson::Int32(4)
         );
 
         collection.find(&doc!{}, None).unwrap().next().unwrap().unwrap();
@@ -162,7 +162,7 @@ fn test_insert_remove_replace_update_extended() {
 
     // Replace one
     {
-        let replace_document = doc! { "key_1" => "Value replace" };
+        let replace_document = doc! { "key_1": "Value replace" };
 
         let bulk_operation = collection.create_bulk_operation(None);
         bulk_operation.replace_one(
@@ -176,7 +176,7 @@ fn test_insert_remove_replace_update_extended() {
 
         assert_eq!(
             result.ok().unwrap().get("nModified").unwrap(),
-            &bson::Bson::I32(1)
+            &bson::Bson::Int32(1)
         );
 
         let first_document = collection.find(&doc!{}, None).unwrap().next().unwrap().unwrap();
@@ -198,7 +198,7 @@ fn test_insert_remove_replace_update_extended() {
 
         assert_eq!(
             result.ok().unwrap().get("nRemoved").unwrap(),
-            &bson::Bson::I32(1)
+            &bson::Bson::Int32(1)
         );
         assert_eq!(4, collection.count(&query, None).unwrap());
     }
@@ -213,7 +213,7 @@ fn test_insert_remove_replace_update_extended() {
 
         assert_eq!(
             result.ok().unwrap().get("nRemoved").unwrap(),
-            &bson::Bson::I32(4)
+            &bson::Bson::Int32(4)
         );
         assert_eq!(0, collection.count(&query, None).unwrap());
     }
