@@ -1,6 +1,8 @@
 extern crate bson;
 extern crate mongo_driver;
 
+mod helpers;
+
 use bson::doc;
 
 use mongo_driver::client::{ClientPool,Uri};
@@ -8,7 +10,7 @@ use mongo_driver::client::{ClientPool,Uri};
 #[cfg_attr(target_os = "windows", ignore)]
 #[test]
 fn test_command() {
-    let uri      = Uri::new("mongodb://localhost:27017/").unwrap();
+    let uri      = Uri::new(helpers::mongodb_test_connection_string()).unwrap();
     let pool     = ClientPool::new(uri, None);
     let client   = pool.pop();
     let database = client.get_database("rust_test");
@@ -21,7 +23,7 @@ fn test_command() {
 
 #[test]
 fn test_command_simple() {
-    let uri      = Uri::new("mongodb://localhost:27017/").unwrap();
+    let uri      = Uri::new(helpers::mongodb_test_connection_string()).unwrap();
     let pool     = ClientPool::new(uri, None);
     let client   = pool.pop();
     let database = client.get_database("rust_test");
@@ -34,7 +36,7 @@ fn test_command_simple() {
 
 #[test]
 fn test_get_collection_and_name() {
-    let uri      = Uri::new("mongodb://localhost:27017/").unwrap();
+    let uri      = Uri::new(helpers::mongodb_test_connection_string()).unwrap();
     let pool     = ClientPool::new(uri, None);
     let client   = pool.pop();
     let database = client.get_database("rust_test");
@@ -47,7 +49,7 @@ fn test_get_collection_and_name() {
 
 #[test]
 fn test_create_collection() {
-    let uri      = Uri::new("mongodb://localhost:27017/").unwrap();
+    let uri      = Uri::new(helpers::mongodb_test_connection_string()).unwrap();
     let pool     = ClientPool::new(uri, None);
     let client   = pool.pop();
     let database = client.get_database("rust_test");
@@ -63,7 +65,7 @@ fn test_create_collection() {
 
 #[test]
 fn test_has_collection() {
-    let uri      = Uri::new("mongodb://localhost:27017/").unwrap();
+    let uri      = Uri::new(helpers::mongodb_test_connection_string()).unwrap();
     let pool     = ClientPool::new(uri, None);
     let client   = pool.pop();
     let database = client.get_database("rust_test");

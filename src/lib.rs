@@ -9,7 +9,7 @@
 //!
 //! # Example
 //!
-//! ```
+//! ```no_run
 //! use std::sync::Arc;
 //! use mongo_driver::client::{ClientPool,Uri};
 //!

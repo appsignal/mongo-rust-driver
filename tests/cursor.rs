@@ -1,6 +1,8 @@
 extern crate bson;
 extern crate mongo_driver;
 
+mod helpers;
+
 use std::sync::Arc;
 use std::thread;
 use std::time::Duration;
@@ -12,7 +14,7 @@ use mongo_driver::Result;
 
 #[test]
 fn test_cursor() {
-    let uri        = Uri::new("mongodb://localhost:27017/").unwrap();
+    let uri        = Uri::new(helpers::mongodb_test_connection_string()).unwrap();
     let pool       = ClientPool::new(uri, None);
     let client     = pool.pop();
     let mut collection = client.get_collection("rust_driver_test", "cursor_items");
@@ -21,7 +23,7 @@ fn test_cursor() {
 
     collection.drop().unwrap_or(());
     for _ in 0..10 {
-        assert!(collection.insert(&document, None).is_ok());
+        collection.insert(&document, None).expect("Could not insert");
     }
 
     let query  = doc! {};
@@ -37,7 +39,7 @@ fn test_cursor() {
 fn test_tailing_cursor() {
     // See: http://mongoc.org/libmongoc/current/cursors.html#tailable
 
-    let uri      = Uri::new("mongodb://localhost:27017/").unwrap();
+    let uri      = Uri::new(helpers::mongodb_test_connection_string()).unwrap();
     let pool     = Arc::new(ClientPool::new(uri, None));
     let client   = pool.pop();
     let database = client.get_database("rust_test");
@@ -68,7 +70,7 @@ fn test_tailing_cursor() {
         let cursor = collection.tail(doc!{}, None, None);
         let mut counter = 0usize;
         for result in cursor.into_iter() {
-            assert!(result.is_ok());
+            result.expect("Error tailing");
             counter += 1;
             if counter == 25 {
                 break;
@@ -94,7 +96,7 @@ fn test_tailing_cursor() {
 #[cfg_attr(target_os = "windows", ignore)]
 #[test]
 fn test_batch_cursor() {
-    let uri      = Uri::new("mongodb://localhost:27017/").unwrap();
+    let uri      = Uri::new(helpers::mongodb_test_connection_string()).unwrap();
     let pool     = Arc::new(ClientPool::new(uri, None));
     let client   = pool.pop();
     let database = client.get_database("rust_test");
@@ -115,11 +117,10 @@ fn test_batch_cursor() {
             bulk_operation.insert(&doc!{"key": i}).unwrap();
         }
 
-        let result = bulk_operation.execute();
-        assert!(result.is_ok());
+        let result = bulk_operation.execute().expect("Could not execute bulk operation");
 
         assert_eq!(
-            result.ok().unwrap().get("nInserted").unwrap(), // why is this an i32?
+            result.get("nInserted").unwrap(), // why is this an i32?
             &bson::Bson::Int32(NUM_TO_TEST)
         );
         assert_eq!(NUM_TO_TEST as i64, collection.count(&doc!{}, None).unwrap());

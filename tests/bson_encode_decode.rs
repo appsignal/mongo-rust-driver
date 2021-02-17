@@ -2,6 +2,8 @@ extern crate bson;
 extern crate chrono;
 extern crate mongo_driver;
 
+mod helpers;
+
 use chrono::prelude::*;
 
 use mongo_driver::client::{ClientPool,Uri};
@@ -16,7 +18,7 @@ use bson::spec::BinarySubtype;
 
 #[test]
 fn test_bson_encode_decode() {
-    let uri    = Uri::new("mongodb://localhost:27017/").unwrap();
+    let uri    = Uri::new(helpers::mongodb_test_connection_string()).unwrap();
     let pool   = ClientPool::new(uri, None);
     let client = pool.pop();
     let mut collection = client.get_collection("rust_driver_test", "bson");
@@ -38,7 +40,7 @@ fn test_bson_encode_decode() {
             bytes: vec![0, 1, 2, 3, 4]
         })
     };
-    assert!(collection.insert(&document, None).is_ok());
+    collection.insert(&document, None).expect("Could not insert");
 
     let found_document = collection.find(&doc!{}, None).unwrap().next().unwrap().unwrap();
 

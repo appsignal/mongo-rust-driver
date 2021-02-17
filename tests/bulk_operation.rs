@@ -1,6 +1,8 @@
 extern crate bson;
 extern crate mongo_driver;
 
+mod helpers;
+
 use std::env;
 
 use bson::doc;
@@ -8,7 +10,7 @@ use mongo_driver::client::{ClientPool,Uri};
 
 #[test]
 fn test_execute_error() {
-    let uri            = Uri::new("mongodb://localhost:27017/").unwrap();
+    let uri            = Uri::new(helpers::mongodb_test_connection_string()).unwrap();
     let pool           = ClientPool::new(uri, None);
     let client         = pool.pop();
     let mut collection     = client.get_collection("rust_driver_test", "bulk_operation_error");
@@ -25,7 +27,7 @@ fn test_execute_error() {
 
 #[test]
 fn test_basics() {
-    let uri            = Uri::new("mongodb://localhost:27017/").unwrap();
+    let uri            = Uri::new(helpers::mongodb_test_connection_string()).unwrap();
     let pool           = ClientPool::new(uri, None);
     let client         = pool.pop();
     let mut collection     = client.get_collection("rust_driver_test", "bulk_operation_basics");
@@ -35,7 +37,7 @@ fn test_basics() {
 
     let document = doc! {"key_1": "Value 1"};
     bulk_operation.insert(&document).expect("Could not insert");
-    assert!(bulk_operation.execute().is_ok());
+    bulk_operation.execute().expect("Could not execute bulk operation");
 
     let first_document = collection.find(&doc!{}, None).unwrap().next().unwrap().unwrap();
     assert_eq!(
@@ -46,7 +48,7 @@ fn test_basics() {
 
 #[test]
 fn test_utf8() {
-    let uri            = Uri::new("mongodb://localhost:27017/").unwrap();
+    let uri            = Uri::new(helpers::mongodb_test_connection_string()).unwrap();
     let pool           = ClientPool::new(uri, None);
     let client         = pool.pop();
     let mut collection     = client.get_collection("rust_driver_test", "bulk_operation_utf8");
@@ -56,7 +58,7 @@ fn test_utf8() {
 
     let document = doc! {"key_1": "kācaṃ śaknomyattum; nopahinasti mām."};
     bulk_operation.insert(&document).expect("Could not insert");
-    assert!(bulk_operation.execute().is_ok());
+    bulk_operation.execute().expect("Could not execute bulk operation");
 
     let first_document = collection.find(&doc!{}, None).unwrap().next().unwrap().unwrap();
     assert_eq!(
@@ -71,7 +73,7 @@ fn test_insert_remove_replace_update_extended() {
         return
     }
 
-    let uri            = Uri::new("mongodb://localhost:27017/").unwrap();
+    let uri            = Uri::new(helpers::mongodb_test_connection_string()).unwrap();
     let pool           = ClientPool::new(uri, None);
     let client         = pool.pop();
     let mut collection = client.get_collection("rust_driver_test", "bulk_operation_extended");
@@ -89,11 +91,10 @@ fn test_insert_remove_replace_update_extended() {
             bulk_operation.insert(&document).unwrap();
         }
 
-        let result = bulk_operation.execute();
-        assert!(result.is_ok());
+        let result = bulk_operation.execute().expect("Could not execute bulk operation");
 
         assert_eq!(
-            result.ok().unwrap().get("nInserted").unwrap(),
+            result.get("nInserted").unwrap(),
             &bson::Bson::Int32(5)
         );
         assert_eq!(5, collection.count(&doc!{}, None).unwrap());
@@ -114,12 +115,10 @@ fn test_insert_remove_replace_update_extended() {
             false
         ).unwrap();
 
-        let result = bulk_operation.execute();
-        println!("{:?}", result);
-        assert!(result.is_ok());
+        let result = bulk_operation.execute().expect("Could not execute bulk operation");
 
         assert_eq!(
-            result.ok().unwrap().get("nModified").unwrap(),
+            result.get("nModified").unwrap(),
             &bson::Bson::Int32(1)
         );
 
@@ -141,12 +140,10 @@ fn test_insert_remove_replace_update_extended() {
             false
         ).unwrap();
 
-        let result = bulk_operation.execute();
-        println!("{:?}", result);
-        assert!(result.is_ok());
+        let result = bulk_operation.execute().expect("Could not execute bulk operation");
 
         assert_eq!(
-            result.ok().unwrap().get("nModified").unwrap(),
+            result.get("nModified").unwrap(),
             &bson::Bson::Int32(4)
         );
 
@@ -171,11 +168,10 @@ fn test_insert_remove_replace_update_extended() {
             false
         ).unwrap();
 
-        let result = bulk_operation.execute();
-        assert!(result.is_ok());
+        let result = bulk_operation.execute().expect("Could not execute bulk operation");
 
         assert_eq!(
-            result.ok().unwrap().get("nModified").unwrap(),
+            result.get("nModified").unwrap(),
             &bson::Bson::Int32(1)
         );
 
@@ -193,11 +189,10 @@ fn test_insert_remove_replace_update_extended() {
         let bulk_operation = collection.create_bulk_operation(None);
         bulk_operation.remove_one(&query).unwrap();
 
-        let result = bulk_operation.execute();
-        assert!(result.is_ok());
+        let result = bulk_operation.execute().expect("Could not execute bulk operation");
 
         assert_eq!(
-            result.ok().unwrap().get("nRemoved").unwrap(),
+            result.get("nRemoved").unwrap(),
             &bson::Bson::Int32(1)
         );
         assert_eq!(4, collection.count(&query, None).unwrap());
@@ -208,11 +203,10 @@ fn test_insert_remove_replace_update_extended() {
         let bulk_operation = collection.create_bulk_operation(None);
         bulk_operation.remove(&query).unwrap();
 
-        let result = bulk_operation.execute();
-        assert!(result.is_ok());
+        let result = bulk_operation.execute().expect("Could not execute bulk operation");
 
         assert_eq!(
-            result.ok().unwrap().get("nRemoved").unwrap(),
+            result.get("nRemoved").unwrap(),
             &bson::Bson::Int32(4)
         );
         assert_eq!(0, collection.count(&query, None).unwrap());
