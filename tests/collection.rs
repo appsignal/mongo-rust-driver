@@ -1,6 +1,8 @@
 extern crate bson;
 extern crate mongo_driver;
 
+mod helpers;
+
 use bson::doc;
 
 use mongo_driver::CommandAndFindOptions;
@@ -10,14 +12,14 @@ use mongo_driver::flags;
 
 #[test]
 fn test_aggregate() {
-    let uri      = Uri::new("mongodb://localhost:27017/").unwrap();
+    let uri      = Uri::new(helpers::mongodb_test_connection_string()).unwrap();
     let pool     = ClientPool::new(uri, None);
     let client   = pool.pop();
     let mut collection = client.get_collection("rust_driver_test", "aggregate");
     collection.drop().unwrap_or(());
 
     for _ in 0..5 {
-        assert!(collection.insert(&doc!{"key": 1}, None).is_ok());
+        collection.insert(&doc!{"key": 1}, None).expect("Could not insert");
     }
 
     let pipeline = doc!{
@@ -39,7 +41,7 @@ fn test_aggregate() {
 #[cfg_attr(target_os = "windows", ignore)]
 #[test]
 fn test_command() {
-    let uri      = Uri::new("mongodb://localhost:27017/").unwrap();
+    let uri      = Uri::new(helpers::mongodb_test_connection_string()).unwrap();
     let pool     = ClientPool::new(uri, None);
     let client   = pool.pop();
     let collection = client.get_collection("rust_driver_test", "items");
@@ -52,7 +54,7 @@ fn test_command() {
 
 #[test]
 fn test_command_simple() {
-    let uri      = Uri::new("mongodb://localhost:27017/").unwrap();
+    let uri      = Uri::new(helpers::mongodb_test_connection_string()).unwrap();
     let pool     = ClientPool::new(uri, None);
     let client   = pool.pop();
     let collection = client.get_collection("rust_driver_test", "items");
@@ -65,7 +67,7 @@ fn test_command_simple() {
 
 #[test]
 fn test_mutation_and_finding() {
-    let uri        = Uri::new("mongodb://localhost:27017/").unwrap();
+    let uri        = Uri::new(helpers::mongodb_test_connection_string()).unwrap();
     let pool       = ClientPool::new(uri, None);
     let client     = pool.pop();
     let _ =  client.get_collection("rust_driver_test".to_string(), "items");
@@ -94,7 +96,7 @@ fn test_mutation_and_finding() {
     let second_document = doc! {
         "key_1": "Value 3"
     };
-    assert!(collection.insert(&second_document, None).is_ok());
+    collection.insert(&second_document, None).expect("Could not insert");
 
     let query = doc!{};
 
@@ -119,7 +121,7 @@ fn test_mutation_and_finding() {
 
     // Update the second document
     let update = doc!{"$set": {"key_1": "Value 4"}};
-    assert!(collection.update(&second_document, &update, None).is_ok());
+    collection.update(&second_document, &update, None).expect("Could not update");
 
     // Reload and check value
     let query_after_update = doc! {
@@ -133,7 +135,7 @@ fn test_mutation_and_finding() {
 
     // Save the second document
     found_document.insert("key_1".to_string(), bson::Bson::String("Value 5".to_string()));
-    assert!(collection.save(&found_document, None).is_ok());
+    collection.save(&found_document, None).expect("Could not save");
 
     // Reload and check value
     let found_document = collection.find(&found_document, None).unwrap().next().unwrap().unwrap();
@@ -143,7 +145,7 @@ fn test_mutation_and_finding() {
     );
 
     // Remove one
-    assert!(collection.remove(&found_document, None).is_ok());
+    collection.remove(&found_document, None).expect("Could not remove");
 
     // Count again
     assert_eq!(1, collection.count(&query, None).unwrap());
@@ -186,7 +188,7 @@ fn test_mutation_and_finding() {
 
 #[test]
 fn test_find_and_modify() {
-    let uri        = Uri::new("mongodb://localhost:27017/").unwrap();
+    let uri        = Uri::new(helpers::mongodb_test_connection_string()).unwrap();
     let pool       = ClientPool::new(uri, None);
     let client     = pool.pop();
     let mut collection = client.get_collection("rust_driver_test", "find_and_modify");
@@ -199,12 +201,11 @@ fn test_find_and_modify() {
     let update = doc! {
         "$set": {"content": 1i32}
     };
-    let result = collection.find_and_modify(
+    collection.find_and_modify(
         &query,
         FindAndModifyOperation::Upsert(&update),
         None
-    );
-    assert!(result.is_ok());
+    ).expect("Could not find and modify");
     assert_eq!(1, collection.count(&query, None).unwrap());
     let found_document = collection.find(&query, None).unwrap().next().unwrap().unwrap();
     assert_eq!(found_document.get_i32("content"), Ok(1));
@@ -213,23 +214,21 @@ fn test_find_and_modify() {
     let update2 = doc! {
         "$set": {"content": 2i32}
     };
-    let result = collection.find_and_modify(
+    collection.find_and_modify(
         &query,
         FindAndModifyOperation::Update(&update2),
         None
-    );
-    assert!(result.is_ok());
+    ).expect("Could not find and modify");
     assert_eq!(1, collection.count(&query, None).unwrap());
     let found_document = collection.find(&query, None).unwrap().next().unwrap().unwrap();
     assert_eq!(found_document.get_i32("content"), Ok(2));
 
     // Remove it
-    let result = collection.find_and_modify(
+    collection.find_and_modify(
         &query,
         FindAndModifyOperation::Remove,
         None
-    );
-    assert!(result.is_ok());
+    ).expect("Could not find and modify");
     assert_eq!(0, collection.count(&query, None).unwrap());
 }
 

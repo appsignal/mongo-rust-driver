@@ -1,6 +1,8 @@
 extern crate bson;
 extern crate mongo_driver;
 
+mod helpers;
+
 use std::env;
 use std::path::PathBuf;
 use std::sync::Arc;
@@ -11,7 +13,7 @@ use mongo_driver::client::{ClientPool,SslOptions,Uri};
 
 #[test]
 fn test_new_pool_pop_client_and_borrow_collection() {
-    let uri = Uri::new("mongodb://localhost:27017/").unwrap();
+    let uri = Uri::new(helpers::mongodb_test_connection_string()).unwrap();
     let pool = ClientPool::new(uri.clone(), None);
     assert_eq!(pool.get_uri(), &uri);
 
@@ -28,7 +30,7 @@ fn test_new_pool_pop_client_and_borrow_collection() {
 
 #[test]
 fn test_new_pool_pop_client_and_take_collection() {
-    let uri = Uri::new("mongodb://localhost:27017/").unwrap();
+    let uri = Uri::new(helpers::mongodb_test_connection_string()).unwrap();
     let pool = ClientPool::new(uri.clone(), None);
     assert_eq!(pool.get_uri(), &uri);
 
@@ -40,7 +42,7 @@ fn test_new_pool_pop_client_and_take_collection() {
 
 #[test]
 fn test_new_pool_pop_client_and_take_database_and_collection() {
-    let uri = Uri::new("mongodb://localhost:27017/").unwrap();
+    let uri = Uri::new(helpers::mongodb_test_connection_string()).unwrap();
     let pool = ClientPool::new(uri.clone(), None);
     assert_eq!(pool.get_uri(), &uri);
 
@@ -54,7 +56,7 @@ fn test_new_pool_pop_client_and_take_database_and_collection() {
 
 #[test]
 fn test_new_pool_and_pop_client_in_threads() {
-    let uri = Uri::new("mongodb://localhost:27017/").unwrap();
+    let uri = Uri::new(helpers::mongodb_test_connection_string()).unwrap();
     let pool = Arc::new(ClientPool::new(uri, None));
 
     let pool1 = pool.clone();
@@ -75,7 +77,7 @@ fn test_new_pool_and_pop_client_in_threads() {
 
 #[test]
 fn test_get_server_status() {
-    let uri = Uri::new("mongodb://localhost:27017/").unwrap();
+    let uri = Uri::new(helpers::mongodb_test_connection_string()).unwrap();
     let pool = ClientPool::new(uri, None);
     let client = pool.pop();
 
@@ -87,7 +89,7 @@ fn test_get_server_status() {
 
 #[test]
 fn test_read_command_with_opts() {
-    let uri = Uri::new("mongodb://localhost:27017/").unwrap();
+    let uri = Uri::new(helpers::mongodb_test_connection_string()).unwrap();
     let pool = ClientPool::new(uri, None);
     let client = pool.pop();
     let db_name = "rust_driver_test";
@@ -110,7 +112,7 @@ fn test_read_command_with_opts() {
 
 #[test]
 fn test_new_pool_with_ssl_options() {
-    let uri = Uri::new("mongodb://localhost:27017/").unwrap();
+    let uri = Uri::new(helpers::mongodb_test_connection_string()).unwrap();
     let ssl_options = SslOptions::new(
         Some(PathBuf::from("./README.md")),
         Some("password".to_string()),
@@ -118,9 +120,8 @@ fn test_new_pool_with_ssl_options() {
         Some(PathBuf::from("./README.md")),
         Some(PathBuf::from("./README.md")),
         false
-    );
-    assert!(ssl_options.is_ok());
-    ClientPool::new(uri, Some(ssl_options.unwrap()));
+    ).expect("Ssl options not correct");
+    ClientPool::new(uri, Some(ssl_options));
 }
 
 #[test]
