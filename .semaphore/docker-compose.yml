@@ -2,12 +2,11 @@ version: '3.7'
 
 services:
   mongodb:
-    image: mongo:3.6
+    image: mongo:latest
     environment:
       - MONGO_DATA_DIR=/data/db
     ports:
       - "27017:27017"
-    command: mongod --smallfiles
   rust:
     image: rust:latest
     container_name: "rust"
