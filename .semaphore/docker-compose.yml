@@ -2,22 +2,19 @@ version: '3.7'
 
 services:
   mongodb:
-    image: mongo:3.6
+    image: mongo:latest
     environment:
       - MONGO_DATA_DIR=/data/db
     ports:
       - "27017:27017"
-    command: mongod --smallfiles
   rust:
     image: rust:latest
     container_name: "rust"
     depends_on:
       - mongodb
     environment:
-      CARGO_HOME: "/tmp/_cargo"
       RUST_TEST_THREADS: "1"
       RUST_BACKTRACE: "full"
-      LIBCLANG_PATH: "/usr/lib/llvm-7/lib"
       SKIP_SSL_CONNECTION_TESTS: "true"
       MONGODB_CONNECTION_STRING: "mongodb://mongodb:27017"
     working_dir: /project

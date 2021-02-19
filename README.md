@@ -21,10 +21,11 @@ The driver currently only builds on Unix, tested on Mac Os X and Linux so far. I
 If you have any trouble installing the crate (linking openssl can be
 tricky) please check out the [installation instructions for the C driver](http://mongoc.org/libmongoc/current/installing.html).
 
-To build on Mac install OpenSSL 1.1:
+To build on Mac install OpenSSL 1.1 and cmake:
 
 ```
 brew install openssl@1.1
+brew install cmake
 ```
 
 Export these env vars the before you make a clean build:

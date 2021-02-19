@@ -31,28 +31,14 @@ blocks:
         commands:
           # Create containers but don't start them yet. We first want to copy the caches onto it
           - docker-compose $COMPOSE_OPTIONS up --no-start
-          # Copy cargo cache to main test container
-          - cache restore v3-cargo-$(checksum Cargo.lock),v3-cargo
-          - "[ -d \"/tmp/_cargo\" ] && docker cp /tmp/_cargo $CONTAINER_NAME:/tmp/_cargo || echo 'No cache to copy'"
           # Copy project to main test container
-          - cache restore v3-project-$(cat PACKAGES_CHECKSUM),v3-project
           - docker cp . $CONTAINER_NAME:/project
-
           # Then start the containers so we can run the test on it
           - docker-compose $COMPOSE_OPTIONS up -d --no-recreate
+          # Install dependencies
+          - docker-compose $COMPOSE_OPTIONS exec $CONTAINER_NAME apt-get update
+          - docker-compose $COMPOSE_OPTIONS exec $CONTAINER_NAME apt-get install -y cmake libssl-dev
       jobs:
         - name: Test
           commands:
             - docker-compose $COMPOSE_OPTIONS exec $CONTAINER_NAME cargo test
-      epilogue:
-        always:
-          commands:
-          # Pull artifacts from containers and cache them
-          - rm -rf target
-          - docker cp $CONTAINER_NAME:/project/target target
-          - cache store v3-project-$(cat PACKAGES_CHECKSUM) target
-
-          # Pull cargo dir and cache it
-          - rm -rf /tmp/_cargo
-          - docker cp $CONTAINER_NAME:/tmp/_cargo /tmp/_cargo
-          - cache store v3-cargo-$(checksum Cargo.lock) /tmp/_cargo

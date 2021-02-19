@@ -38,7 +38,6 @@ fn test_aggregate() {
     assert_eq!(Ok(5), total.get_i32("total"));
 }
 
-#[cfg_attr(target_os = "windows", ignore)]
 #[test]
 fn test_command() {
     let uri      = Uri::new(helpers::mongodb_test_connection_string()).unwrap();
