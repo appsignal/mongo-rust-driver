@@ -1,3 +1,8 @@
+# 0.13.0
+* Bump bson dependency to 1.2
+* Upgrade libmongoc to 1.17.4
+* Remove Windows support
+
 # 0.12.1
 * Add support for commands that return batches (by MiesJansen)
 
