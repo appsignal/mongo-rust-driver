@@ -58,11 +58,15 @@ fn main() {
                 cmake.arg("-DENABLE_AUTOMATIC_INIT_AND_CLEANUP=OFF");
                 cmake.arg("-DENABLE_SSL=OPENSSL");
                 cmake.arg("-DENABLE_SASL=OFF");
-                cmake.arg("-DENABLE_STATIC=OFF");
+                cmake.arg("-DENABLE_STATIC=ON");
+                cmake.arg("-DENABLE_BSON=ON");
+                cmake.arg("-DENABLE_ENABLE_EXAMPLES=OFF");
                 cmake.arg("-DENABLE_TESTS=OFF");
+                cmake.arg("-DENABLE_SHM_COUNTERS=OFF");
                 cmake.arg("-DWITH_PIC=ON");
                 cmake.arg("-DWITH_SNAPPY=OFF");
                 cmake.arg("-DWITH_ZLIB=ON");
+                cmake.arg("-DENABLE_EXTRA_ALIGNMENT=OFF");
 
                 // Run in current dir
                 cmake.arg(".");
@@ -82,7 +86,9 @@ fn main() {
 
             // Output to Cargo
             println!("cargo:rustc-link-search=native={}/usr/local/lib", &out_dir.to_string_lossy());
-            println!("cargo:rustc-link-lib=bson-1.0");
-            println!("cargo:rustc-link-lib=mongoc-1.0");
+            println!("cargo:rustc-link-lib=static=bson-static-1.0");
+            println!("cargo:rustc-link-lib=static=mongoc-static-1.0");
+            println!("cargo:rustc-link-lib=resolv");
+            #[cfg(target_os = "linux")] println!("cargo:rustc-link-lib=icuuc");
         }
 }
