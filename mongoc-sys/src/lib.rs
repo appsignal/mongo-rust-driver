@@ -36,6 +36,8 @@ pub mod bindings {
         pub code: uint32_t,
         pub message: [::libc::c_char; 504usize],
     }
+
+    pub enum bson_oid_t { }
     extern "C" {
         pub fn bson_as_json(bson: *const bson_t, length: *mut size_t) -> *mut ::libc::c_char;
         pub fn bson_destroy(bson: *mut bson_t) -> ();
@@ -44,6 +46,9 @@ pub mod bindings {
         pub fn bson_new() -> *mut bson_t;
         pub fn bson_new_from_data(data: *const uint8_t, length: size_t) -> *mut bson_t;
         pub fn bson_reader_new_from_data(data: *const uint8_t, length: size_t) -> *mut bson_reader_t;
+        pub fn bson_oid_init(oid: &bson_oid_t, val: *const ::libc::c_char) -> ();
+        pub fn bson_append_oid(doc: *mut bson_t, key: *const ::libc::c_char, key_length: i8, oid: &bson_oid_t) -> ();
+        pub fn bson_append_utf8(doc: *mut bson_t, val: *const ::libc::c_char, key_length: i8, v: *const ::libc::c_char, char_length: i8) -> ();
     }
 
     // Init and logging
@@ -54,6 +59,7 @@ pub mod bindings {
                                                              user_data: *mut ::libc::c_void) -> ()>;
     extern "C" {
         pub fn mongoc_init() -> ();
+        pub fn mongoc_cleanup() -> ();
         pub fn mongoc_log_set_handler(log_func: mongoc_log_func_t, user_data: *mut ::libc::c_void) -> ();
     }
     pub const MONGOC_LOG_LEVEL_ERROR: ::libc::c_uint = 0;
@@ -123,6 +129,8 @@ pub mod bindings {
         fn clone(&self) -> Self { *self }
     }
     extern "C" {
+        pub fn mongoc_client_new(uri: *const ::libc::c_char) -> *mut mongoc_client_t;
+        pub fn mongoc_client_destroy (client: *mut mongoc_client_t) -> ();
         pub fn mongoc_client_pool_new(uri: *const mongoc_uri_t) -> *mut mongoc_client_pool_t;
         pub fn mongoc_client_pool_set_ssl_opts(pool: *mut mongoc_client_pool_t, opts: *const mongoc_ssl_opt_t) -> ();
         pub fn mongoc_client_pool_pop(pool: *mut mongoc_client_pool_t) -> *mut mongoc_client_t;
@@ -149,6 +157,7 @@ pub mod bindings {
         pub fn mongoc_collection_find(collection: *mut mongoc_collection_t, flags: mongoc_query_flags_t, skip: uint32_t, limit: uint32_t, batch_size: uint32_t, query: *const bson_t, fields: *const bson_t, read_prefs: *const mongoc_read_prefs_t) -> *mut mongoc_cursor_t;
         pub fn mongoc_collection_find_and_modify(collection: *mut mongoc_collection_t, query: *const bson_t, sort: *const bson_t, update: *const bson_t, fields: *const bson_t, _remove: u8, upsert: u8, _new: u8, reply: *mut bson_t, error: *mut bson_error_t) -> u8;
         pub fn mongoc_collection_get_name(collection: *mut mongoc_collection_t) -> *const ::libc::c_char;
+        pub fn mongoc_collection_insert_one(collection: *mut mongoc_collection_t, doc: *const bson_t, opts: *const bson_t, reply: *const bson_t, error: &bson_error_t) -> bool;
         pub fn mongoc_collection_insert(collection: *mut mongoc_collection_t, flags: mongoc_insert_flags_t, document: *const bson_t, write_concern: *const mongoc_write_concern_t, error: *mut bson_error_t) -> u8;
         pub fn mongoc_collection_remove(collection: *mut mongoc_collection_t, flags: mongoc_remove_flags_t, selector: *const bson_t, write_concern: *const mongoc_write_concern_t, error: *mut bson_error_t) -> u8;
         pub fn mongoc_collection_save(collection: *mut mongoc_collection_t, document: *const bson_t, write_concern: *const mongoc_write_concern_t, error: *mut bson_error_t) -> u8;
