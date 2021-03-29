@@ -37,7 +37,7 @@ blocks:
           - docker-compose $COMPOSE_OPTIONS up -d --no-recreate
           # Install dependencies
           - docker-compose $COMPOSE_OPTIONS exec $CONTAINER_NAME apt-get update
-          - docker-compose $COMPOSE_OPTIONS exec $CONTAINER_NAME apt-get install -y cmake libssl-dev
+          - docker-compose $COMPOSE_OPTIONS exec $CONTAINER_NAME apt-get install -y cmake libssl-dev libsasl2-dev libicu-dev
       jobs:
         - name: Test
           commands:
