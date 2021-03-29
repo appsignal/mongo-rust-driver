@@ -1,3 +1,6 @@
+# 0.13.1
+* Statically link libmongoc
+
 # 0.13.0
 * Bump bson dependency to 1.2
 * Upgrade libmongoc to 1.17.4
