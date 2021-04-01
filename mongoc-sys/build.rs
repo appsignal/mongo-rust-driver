@@ -65,8 +65,6 @@ fn main() {
                 cmake.arg("-DENABLE_SHM_COUNTERS=OFF");
                 cmake.arg("-DWITH_PIC=ON");
                 cmake.arg("-DWITH_SNAPPY=OFF");
-                cmake.arg("-DWITH_ZLIB=ON");
-                cmake.arg("-DENABLE_EXTRA_ALIGNMENT=OFF");
 
                 // Run in current dir
                 cmake.arg(".");
