@@ -1,3 +1,6 @@
+# 0.13.2
+* Fix probe of libbson so static linking actually works
+
 # 0.13.1
 * Statically link libmongoc
 
