@@ -1,6 +1,5 @@
 # Mongo Rust Driver
 
-[![Build Status](https://travis-ci.org/thijsc/mongo-rust-driver.svg)](https://travis-ci.org/thijsc/mongo-rust-driver)
 [![Crate](http://meritbadge.herokuapp.com/mongo_driver)](https://crates.io/crates/mongo_driver)
 
 Mongo Rust driver built on top of the [Mongo C driver](https://github.com/mongodb/mongo-c-driver).

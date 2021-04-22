@@ -12,7 +12,6 @@ license       = "MIT/Apache-2.0"
 edition       = "2018"
 
 [badges]
-travis-ci = { repository = "thijsc/mongo-rust-driver" }
 is-it-maintained-issue-resolution = { repository = "thijsc/mongo-rust-driver" }
 is-it-maintained-open-issues = { repository = "thijsc/mongo-rust-driver" }
 
