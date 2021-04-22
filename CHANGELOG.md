@@ -1,3 +1,7 @@
+# 0.13.3
+* Upgrade libmongoc to 1.17.4
+* Another static linking fix
+
 # 0.13.2
 * Fix probe of libbson so static linking actually works
 
