@@ -15,7 +15,7 @@ fn main() {
     if pkg_config::Config::new()
         .atleast_version(mongoc_version)
         .statik(true)
-        .probe("libmongoc-1.0")
+        .probe("libmongoc-static-1.0")
         .is_err()
         {
             let out_dir_var = env::var("OUT_DIR").expect("No out dir");
