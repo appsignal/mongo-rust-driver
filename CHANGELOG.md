@@ -1,3 +1,6 @@
+# 0.13.4
+* Tweak linking options, use snappy if available
+
 # 0.13.3
 * Upgrade libmongoc to 1.17.4
 * Another static linking fix
