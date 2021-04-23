@@ -1,3 +1,6 @@
+# 0.13.5
+* Hard version lock on sys dependency
+
 # 0.13.4
 * Tweak linking options, use snappy if available
 
