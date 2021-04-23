@@ -10,7 +10,13 @@ fn main() {
         .next()
         .expect("Crate version is not valid");
 
-    pkg_config::Config::new().probe("zlib").expect("Cannot find zlib");
+    let pkg = pkg_config::Config::new();
+    pkg.probe("zlib").expect("Cannot find zlib");
+    #[cfg(target_os = "linux")] pkg.probe("icu-i18n").expect("Cannot find icu");
+    match pkg.probe("snappy") {
+        Ok(_) => (),
+        Err(e) => println!("Snappy not found: {}", e)
+    }
 
     let out_dir_var = env::var("OUT_DIR").expect("No out dir");
     let out_dir = Path::new(&out_dir_var);
@@ -58,7 +64,6 @@ fn main() {
         cmake.arg("-DENABLE_TESTS=OFF");
         cmake.arg("-DENABLE_SHM_COUNTERS=OFF");
         cmake.arg("-DWITH_PIC=ON");
-        cmake.arg("-DWITH_SNAPPY=OFF");
 
         // Run in current dir
         cmake.arg(".");
@@ -81,5 +86,4 @@ fn main() {
     println!("cargo:rustc-link-lib=static=bson-static-1.0");
     println!("cargo:rustc-link-lib=static=mongoc-static-1.0");
     println!("cargo:rustc-link-lib=resolv");
-    #[cfg(target_os = "linux")] println!("cargo:rustc-link-lib=icuuc");
 }
