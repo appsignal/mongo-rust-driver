@@ -1,3 +1,6 @@
+# 0.13.6
+* Memory leak fix in Bscon::new by (by austinjones)
+
 # 0.13.5
 * Hard version lock on sys dependency
 
