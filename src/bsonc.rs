@@ -16,7 +16,12 @@ pub struct Bsonc {
 
 impl Bsonc {
     pub fn new() -> Bsonc {
-        Bsonc::from_ptr(unsafe { bindings::bson_new() })
+        let inner: *const bindings::bson_t = unsafe { bindings::bson_new() };
+        assert!(!inner.is_null());
+        Bsonc {
+            inner: inner as *mut bindings::bson_t,
+            destroy_inner_on_drop: true,
+        }
     }
 
     /// Create a bsonc from a raw pointer. Does not run cleanup
@@ -111,6 +116,13 @@ impl Drop for Bsonc {
 
 #[cfg(test)]
 mod tests {
+    #[test]
+    fn test_bsonc_new() {
+        for _ in 0..100 {
+            let _ = super::Bsonc::new();
+        }
+    }
+
     #[test]
     fn test_bsonc_from_and_as_document() {
         let document = doc! { "key": "value" };
