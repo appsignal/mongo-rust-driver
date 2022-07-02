@@ -45,8 +45,7 @@ pub struct Database<'a> {
 }
 
 impl<'a> Database<'a> {
-    #[doc(ignore)]
-    pub fn new(
+    pub(crate) fn new(
         created_by: CreatedBy<'a>,
         inner: *mut bindings::mongoc_database_t
     ) -> Database<'a> {
