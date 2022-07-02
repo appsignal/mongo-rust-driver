@@ -1,3 +1,6 @@
+# 0.14.0
+* Bump mongoc to 1.22.0
+
 # 0.13.6
 * Memory leak fix in Bscon::new by (by austinjones)
 
