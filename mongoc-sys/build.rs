@@ -10,13 +10,6 @@ fn main() {
         .next()
         .expect("Crate version is not valid");
 
-    let pkg = pkg_config::Config::new();
-    pkg.probe("zlib").expect("Cannot find zlib");
-    #[cfg(target_os = "linux")] pkg.probe("icu-i18n").expect("Cannot find icu");
-    match pkg.probe("snappy") {
-        Ok(_) => (),
-        Err(e) => println!("Snappy not found: {}", e)
-    }
 
     let out_dir_var = env::var("OUT_DIR").expect("No out dir");
     let out_dir = Path::new(&out_dir_var);
@@ -54,6 +47,19 @@ fn main() {
         // Set up cmake command
         let mut cmake = Command::new("cmake");
         cmake.current_dir(&driver_src_path);
+
+        let pkg = pkg_config::Config::new();
+        pkg.probe("zlib").expect("Cannot find zlib");
+        #[cfg(target_os = "linux")] pkg.probe("icu-i18n").expect("Cannot find icu");
+        match pkg.probe("snappy") {
+            Ok(_) => {
+                cmake.arg("-DENABLE_SNAPPY=ON");
+            },
+            Err(e) => {
+                println!("Snappy not found: {}", e);
+                cmake.arg("-DENABLE_SNAPPY=OFF");
+            }
+        }
 
         cmake.arg("-DENABLE_AUTOMATIC_INIT_AND_CLEANUP=OFF");
         cmake.arg("-DENABLE_SSL=OPENSSL");
