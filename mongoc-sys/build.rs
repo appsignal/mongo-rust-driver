@@ -10,7 +10,6 @@ fn main() {
         .next()
         .expect("Crate version is not valid");
 
-
     let out_dir_var = env::var("OUT_DIR").expect("No out dir");
     let out_dir = Path::new(&out_dir_var);
     let driver_src_path = out_dir.join(format!("mongo-c-driver-{}", mongoc_version));
