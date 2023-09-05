@@ -59,6 +59,15 @@ fn main() {
                 cmake.arg("-DENABLE_SNAPPY=OFF");
             }
         }
+        match pkg.probe("zstd") {
+            Ok(_) => {
+                cmake.arg("-DENABLE_ZSTD=ON");
+            },
+            Err(e) => {
+                println!("Zstd not found: {}", e);
+                cmake.arg("-DENABLE_ZSTD=OFF");
+            }
+        }
 
         cmake.arg("-DENABLE_AUTOMATIC_INIT_AND_CLEANUP=OFF");
         cmake.arg("-DENABLE_SSL=OPENSSL");
