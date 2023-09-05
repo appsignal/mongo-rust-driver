@@ -1,3 +1,6 @@
+# 0.14.2
+* Disable zstd if package is not found
+
 # 0.14.1
 * Disable snappy if package is not found
 
