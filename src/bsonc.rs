@@ -74,6 +74,9 @@ impl Bsonc {
             slice::from_raw_parts(data_ptr, data_len)
         };
 
+        #[allow(deprecated)]
+        // Ignore this deprecation, this is hopefully the last
+        // time we update bson.
         Ok(bson::Document::from_reader_utf8_lossy(&mut slice)?)
     }
 
