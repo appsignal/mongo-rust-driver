@@ -1,6 +1,8 @@
 # Mongo Rust Driver
 
-[![Crate](http://meritbadge.herokuapp.com/mongo_driver)](https://crates.io/crates/mongo_driver)
+| :warning: Not maintained    |
+|:----------------------------|
+| This project is not maintained anymore. There is now a production-ready official [Rust driver](https://www.mongodb.com/docs/drivers/rust/current/). |
 
 Mongo Rust driver built on top of the [Mongo C driver](https://github.com/mongodb/mongo-c-driver).
 This driver is a thin wrapper around the production-ready C driver that provides a safe and ergonomic Rust interface which handles all the gnarly usage details of the C driver for you.
