@@ -1,3 +1,7 @@
+# 0.15.0
+* Bump mongoc to 1.28.0
+* Bump bson to 2.x
+
 # 0.14.2
 * Disable zstd if package is not found
 
