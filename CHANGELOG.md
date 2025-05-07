@@ -1,3 +1,6 @@
+# 0.16
+* Bump mongoc to 1.30.3
+
 # 0.15.1
 * Allow a deprecation in bson
 
