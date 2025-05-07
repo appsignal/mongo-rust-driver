@@ -1,6 +1,6 @@
 [package]
 name          = "mongo_driver"
-version       = "0.16.0"
+version       = "0.16.1"
 authors       = ["Thijs Cadier <thijs@appsignal.com>"]
 description   = "Mongo Rust driver built on top of the Mongo C driver"
 readme        = "README.md"
@@ -23,7 +23,7 @@ features = ["chrono-0_4"]
 
 [dependencies.mongoc-sys]
 path    = "mongoc-sys"
-version = "=1.30.3"
+version = "=1.30.4"
 
 [dev-dependencies]
 chrono = "^0.4"

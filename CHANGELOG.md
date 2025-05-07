@@ -1,3 +1,6 @@
+# 0.16.1
+* Bump mongoc to 1.30.4
+
 # 0.16
 * Bump mongoc to 1.30.3
 
