@@ -1,3 +1,4 @@
+use core::ffi::c_char;
 use std::error;
 use std::fmt;
 use std::borrow::Cow;
@@ -236,7 +237,7 @@ impl BsoncError {
 
     /// The error's message.
     pub fn get_message(&self) -> Cow<str> {
-        let cstr = unsafe { CStr::from_ptr(&self.inner.message as *const i8) };
+        let cstr = unsafe { CStr::from_ptr(&self.inner.message as *const c_char) };
         String::from_utf8_lossy(cstr.to_bytes())
     }
 
