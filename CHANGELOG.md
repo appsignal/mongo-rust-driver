@@ -1,4 +1,7 @@
 # 0.16.1
+* Make driver architecture agnostic
+
+# 0.16.1
 * Bump mongoc to 1.30.4
 
 # 0.16
